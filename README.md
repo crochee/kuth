@@ -9,8 +9,13 @@
 
 #### 安装教程
 
-1.  xxxx
-2.  xxxx
+1.  安装最新稳定版本rust,详情查看rust官网
+2.  安装有mysql系数据库,最好是有mariadb
+
+数据库模型同步,需要复制工作空间的.env.sample,并更名为.env,修改DATABASE_URL为对应的数据库连接，下面是同步命令
+```shell
+cargo install sqlx-cli --no-default-features --features rustls,mysql && sqlx database create && sqlx migrate run
+```
 3.  xxxx
 
 #### 使用说明
