@@ -119,7 +119,7 @@ fn bind_api() -> Router {
 fn authz_api() -> Router {
     Router::new()
         .route("/v1/tokens", post(auth::create_token))
-        .route("/v1/tokens", get(auth::verify_token))
+        .route("/v1/auth", post(auth::verify_token))
         .route("/v1/signs", post(auth::sign))
         .route("/v1/authz", post(auth::authorization))
 }
