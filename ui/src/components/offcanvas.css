@@ -1,0 +1,39 @@
+.sidebar {
+    width: 3rem;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    position: fixed;
+    border-right: 1px solid rgba(0, 0, 0, .2);
+}
+
+.sidebar .service {
+    margin: 2rem 0;
+}
+
+.sidebar .sidebar-line {
+    height: 1px;
+    background-color: #dfe1e6;
+    width: auto;
+    margin: 0 6px;
+}
+
+.sidebar .offcanvas {
+    width: 400px;
+    bottom: 0;
+    top: 0;
+    left: 3rem;
+    position: fixed;
+    border-right: 1px solid rgba(0, 0, 0, .2);
+}
+
+.offcanvas .offcanvas-title {
+    font-size: 2rem;
+}
+
+.offcanvas .offcanvas-header {
+    padding-left: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
