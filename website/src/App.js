@@ -6,6 +6,7 @@ import {
 } from '@ant-design/icons';
 import './App.css';
 import Alerts from './components/alerts';
+import Login from './pages/login';
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -77,6 +78,7 @@ const App = () => {
           <Button type="primary">Button</Button>
           <Alerts message="test" type="error" />
           <p>Content</p>
+          <Login />
         </Content>
       </Layout>
     </Layout>
