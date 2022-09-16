@@ -1,31 +1,56 @@
-const KuthUrl = "http://127.0.0.1:30050";
+import { message } from 'antd';
+import { getToken } from '../../utils/auth';
 
-export const CustomRequest = (url, requestOptions) => {
-    return new Promise((resolve, reject) => {
-        fetch(KuthUrl + url, requestOptions).then(resolve).catch(reject)
-    })
-};
+export const KuthUrl = "http://127.0.0.1:30050";
 
-const Request = (url, requestOptions) => {
-    var myHeaders = new Headers(requestOptions.headers);
-    myHeaders.set('Accept', 'application/json')
-    requestOptions.body && myHeaders.set('Content-Type', 'application/json');
-    requestOptions.headers = myHeaders;
+export default (url, options) => {
+    const defaultOptions = {
+        /*容许携带cookies*/
+        credentials: 'include',
+        /*容许跨域**/
+        mode: 'cors',
+        headers: new Headers({
+            Accept: 'application/json; charset=utf-8',
+            Authorization: getToken(),
+        }),
+        body: null,
+    }
+    options.method = options.method || 'GET';
+    options.code = options.code || 200;
 
-    return new Promise((resolve, reject) => {
-        CustomRequest(url, requestOptions).then((response) => {
+    if (options.method == 'GET' | 'HEAD' | 'DELETE') {
+        options.body = null;
+    }
+    if (options.body) {
+        defaultOptions.headers.set('Content-Type', 'application/json; charset=utf-8');
+        defaultOptions.body = JSON.stringify(options.body);
+    }
+    const f = new Promise((resolve, reject) => {
+        fetch(KuthUrl + url, defaultOptions).then((response) => {
             if (response.status === 204) {
                 return
             }
+            if (response.status != options.code) {
+                reject(response.json())
+                return
+            }
             let contentType = response.headers.get("Content-Type");
-            // json
             if (contentType === "application/json") {
                 resolve(response.json())
                 return
             }
             throw new Error("Content-Type not supported" + contentType)
-        }).catch(reject)
+        }).catch((error) => {
+            message.error(error)
+        })
+    })
+    return new Promise((resolve) => {
+        f.then(resolve).catch(
+            (result) => {
+                result.then((content) => {
+                    message.warn(content.message, 5)
+                })
+            }
+        )
     })
 };
-
-export default Request;

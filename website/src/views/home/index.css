@@ -1,0 +1,36 @@
+@import '~antd/dist/antd.css';
+
+
+.layout-header {
+    display: flex;
+}
+
+.layout-body {
+    min-height: 89vh;
+}
+
+.layout-sider,
+.layout-background {
+    background: #fff;
+}
+
+.layout-header-logo {
+    margin-right: 85px;
+    color: whitesmoke;
+    font-size: 32px;
+}
+
+.layout-header-content {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #001529;
+}
+
+.trigger {
+    padding: 0 24px;
+    font-size: 18px;
+    line-height: 64px;
+    cursor: pointer;
+    transition: color 0.3s;
+}

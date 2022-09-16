@@ -1,13 +1,24 @@
 use std::task::{Context, Poll};
 
 use axum::{
+    headers::{authorization::Bearer, Authorization, HeaderMapExt},
     http::Request,
     middleware::Next,
     response::{IntoResponse, Response},
+    Json,
 };
+use http::HeaderValue;
+use sqlx::MySqlPool;
 use tower::{Layer, Service};
+use validator::Validate;
 
-use crate::Error;
+use crate::{
+    service::{
+        authentication::{bearer, Effect, Request as ARequest},
+        authorization::Decision,
+    },
+    Error,
+};
 
 pub struct CheckHeader;
 
@@ -41,15 +52,78 @@ where
     }
 }
 
-pub async fn check_headers<B>(req: Request<B>, next: Next<B>) -> Response {
+pub async fn check_headers<B>(mut req: Request<B>, next: Next<B>) -> Response {
     if req.uri().path().ne("/v1/accounts") {
-        let header = req.headers();
-        if header.get("X-Account-ID").is_none() {
-            return Error::Forbidden("miss request header X-Account-ID".to_string())
-                .into_response();
+        // 获取token
+        let value = match req
+            .headers()
+            .typed_try_get::<Authorization<Bearer>>()
+            .map_err(|err| Error::Forbidden(err.to_string()))
+        {
+            Ok(v) => match v {
+                Some(v) => v,
+                None => {
+                    return Error::Forbidden("miss request header Authorization".to_string())
+                        .into_response()
+                }
+            },
+            Err(err) => return err.into_response(),
         };
-        if header.get("X-User-ID").is_none() {
-            return Error::Forbidden("miss request header X-User-ID".to_string()).into_response();
+        // 获取连接
+        let pool=  match req
+            .extensions()
+            .get::<MySqlPool>()
+            .ok_or_else(|| {
+                Error::Forbidden(format!(
+                    "Extension of type `{}` was not found. Perhaps you forgot to add it? See `axum::Extension`.",
+                    std::any::type_name::<MySqlPool>()
+                ))
+            })
+            .map(|x| x.clone()){
+                Ok(v) => v,
+                Err(err) => return err.into_response(),
+            };
+        // 获取query
+        let request_value: ARequest =
+            match serde_urlencoded::from_str(req.uri().query().unwrap_or_default()) {
+                Ok(v) => v,
+                Err(err) => return Error::Forbidden(err.to_string()).into_response(),
+            };
+        if let Err(err) = request_value.validate() {
+            return Error::Validates(err).into_response();
+        };
+        if request_value.resource.is_none() && request_value.path.is_none() {
+            return Error::BadRequest("both resource and path are empty".to_owned())
+                .into_response();
+        }
+        // 校验token
+        let resp = match bearer::parse(pool, value.token(), &request_value).await {
+            Ok(v) => v,
+            Err(err) => {
+                if Error::NotFound("".to_owned()).eq(&err) {
+                    return Json(Effect {
+                        decision: Decision::Deny.to_string(),
+                        reason: err.to_string(),
+                        user_id: Default::default(),
+                        account_id: Default::default(),
+                    })
+                    .into_response();
+                }
+                return err.into_response();
+            }
+        };
+        if !resp.decision.eq(&Decision::Allow.to_string()) {
+            return Json(resp).into_response();
+        }
+        // 重新赋值请求头
+        let header = req.headers_mut();
+        match HeaderValue::from_str(&resp.account_id) {
+            Ok(v) => header.insert("X-Account-ID", v),
+            Err(err) => return Error::any(err).into_response(),
+        };
+        match HeaderValue::from_str(&resp.user_id) {
+            Ok(v) => header.insert("X-User-ID", v),
+            Err(err) => return Error::any(err).into_response(),
         };
     }
     next.run(req).await

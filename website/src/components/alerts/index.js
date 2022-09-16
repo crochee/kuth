@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import './alerts.css';
-import { ButtonClose } from './button';
+import './index.css';
+import { ButtonClose } from '../button';
 
-export default function Alerts(props) {
+export default (props) => {
     const {
         message,
         type,

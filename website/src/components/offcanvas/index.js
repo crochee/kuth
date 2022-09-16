@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import './offcanvas.css';
-import { ButtonClose } from './button';
+import './index.css';
+import { ButtonClose } from '../button';
 
 function Offcanvas(props) {
     return <div className="offcanvas" tabindex="-1">

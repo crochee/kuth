@@ -33,4 +33,6 @@ pub struct Request {
 pub struct Effect {
     pub decision: String,
     pub reason: String,
+    pub user_id: String,
+    pub account_id: String,
 }

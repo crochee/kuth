@@ -58,6 +58,8 @@ pub async fn verify_token(
                 return Ok(Effect {
                     decision: Decision::Deny.to_string(),
                     reason: err.to_string(),
+                    user_id: Default::default(),
+                    account_id: Default::default(),
                 }
                 .into());
             }
@@ -82,6 +84,8 @@ pub async fn authorization(
     Ok(authentication::Effect {
         decision: d.to_string(),
         reason,
+        user_id: att.user_id.clone(),
+        account_id: att.account_id.clone(),
     }
     .into())
 }

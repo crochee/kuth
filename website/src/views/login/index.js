@@ -1,12 +1,26 @@
-import { useState } from 'react';
-import './login.css';
-import { Button, Checkbox, Form, Input } from 'antd';
-import Alerts from '../components/alerts';
+import { useState, useEffect } from 'react';
+import './index.css';
+import { Button, Checkbox, Form, Input, message } from 'antd';
+import Alerts from '../../components/alerts';
+import { PostTokens } from '../../apis/kuth/auth';
 
-const Login = () => {
+const Login = (props) => {
+    const [userInfo, setInfo] = useState({
+        userName: "",
+        password: "",
+    });
     const onFinish = (values) => {
         console.log('Success:', values.username, values.password);
+        setInfo({
+            userName: values.username,
+            password: values.password,
+        })
     };
+    useEffect(() => {
+        PostTokens(userInfo.userName || "", userInfo.password || "").then((res) => {
+            console.log(res)
+        })
+    }, []);
     let failedErrorInfo;
     const onFinishFailed = (errorInfo) => {
         failedErrorInfo = errorInfo;

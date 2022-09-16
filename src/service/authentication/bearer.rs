@@ -26,8 +26,8 @@ pub async fn parse(pool: MySqlPool, token: &str, r: &super::Request) -> Result<s
     };
 
     let mut att = Attribute {
-        user_id: c.claims.id,
-        account_id: c.claims.account_id,
+        user_id: c.claims.id.clone(),
+        account_id: c.claims.account_id.clone(),
         name: c.claims.name,
         extra: c.claims.args,
         action: r.action.clone(),
@@ -49,5 +49,7 @@ pub async fn parse(pool: MySqlPool, token: &str, r: &super::Request) -> Result<s
     Ok(super::Effect {
         decision: d.to_string(),
         reason,
+        user_id: c.claims.id,
+        account_id: c.claims.account_id,
     })
 }

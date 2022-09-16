@@ -9,6 +9,7 @@ use axum::{
 };
 use sqlx::MySqlPool;
 use tower_http::{
+    cors::CorsLayer,
     trace::{DefaultOnResponse, TraceLayer},
     LatencyUnit,
 };
@@ -39,6 +40,7 @@ pub fn api_rest_router(pool: MySqlPool) -> Router {
         )
         .layer(Trace)
         .fallback(not_found.into_service())
+        .layer(CorsLayer::permissive())
 }
 
 async fn not_found(uri: Uri) -> impl IntoResponse {
@@ -118,7 +120,7 @@ fn bind_api() -> Router {
 // 认证
 fn authz_api() -> Router {
     Router::new()
-        .route("/v1/tokens", post(auth::create_token))
+        .route("/v1/auth/tokens", post(auth::create_token))
         .route("/v1/auth", post(auth::verify_token))
         .route("/v1/signs", post(auth::sign))
         .route("/v1/authz", post(auth::authorization))
