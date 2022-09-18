@@ -1,27 +1,20 @@
 import React from "react";
-import { HashRouter, Route, Routes, Navigate } from "react-router-dom";
+import { HashRouter, Route, Routes, Navigate, Outlet } from "react-router-dom";
 import { connect } from "react-redux";
 import Home from "../views/home";
 import Login from "../views/login";
 import { getUserInfo } from "../store/actions/user";
 
 const Router = (props) => {
-    const { token, id, getUserInfo } = props;
     return <HashRouter>
         <Routes>
-            <Route exact path="/login" component={Login} />
-            <Route
-                path="/"
-                render={() => {
-                    if (!token) {
-                        return <Navigate to="/login" />;
-                    }
-                    if (id) {
-                        return <Home />;
-                    }
-                    getUserInfo().then(() => <Home />);
-                }}
-            />
+            <Route element={<Outlet />}>
+                <Route path="/login" element={<Login />} />
+                <Route
+                    path="/"
+                    element={<SwitchRouter {...props} />}
+                />
+            </Route>
         </Routes>
     </HashRouter>
 }
@@ -29,4 +22,17 @@ const Router = (props) => {
 export default connect((state) => state.user, { getUserInfo })(Router);
 
 
-
+const SwitchRouter = (props) => {
+    const { token, id, getUserInfo } = props;
+    console.log(token, id);
+    if (!token) {
+        console.log("go to login");
+        return <Navigate to="/login" />;
+    }
+    if (id) {
+        console.log("go to home");
+        return <Home />;
+    }
+    console.log("go to getUserInfo");
+    getUserInfo().then(() => <Home />);
+}
