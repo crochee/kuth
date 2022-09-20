@@ -35,5 +35,5 @@ export const PostTokens = (username, password) => {
 };
 
 export const VerifyToken = () => {
-    return Request("/v1/auth?action=post&path=/v1/auth", { method: "POST", })
+    return Request("/v1/auth?action=post&path=/v1/auth", { method: "POST" })
 }

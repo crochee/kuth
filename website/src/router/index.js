@@ -1,38 +1,48 @@
 import React from "react";
-import { HashRouter, Route, Routes, Navigate, Outlet } from "react-router-dom";
-import { connect } from "react-redux";
+import { HashRouter, Route, Routes, Navigate, useLocation, Outlet } from "react-router-dom";
 import Home from "../views/home";
 import Login from "../views/login";
-import { getUserInfo } from "../store/actions/user";
+import { useSelector, useDispatch } from 'react-redux';
+import { GetUserInfo } from "../apis/kuth/user";
+import { VerifyToken } from "../apis/kuth/auth";
+import { UserSetInfo, UserClear } from "../store";
+import { removeToken } from '../utils/auth';
 
-const Router = (props) => {
+export default () => {
     return <HashRouter>
         <Routes>
             <Route element={<Outlet />}>
                 <Route path="/login" element={<Login />} />
                 <Route
                     path="/"
-                    element={<SwitchRouter {...props} />}
+                    element={<WrapRouter />}
                 />
             </Route>
         </Routes>
     </HashRouter>
 }
 
-export default connect((state) => state.user, { getUserInfo })(Router);
 
-
-const SwitchRouter = (props) => {
-    const { token, id, getUserInfo } = props;
-    console.log(token, id);
-    if (!token) {
-        console.log("go to login");
-        return <Navigate to="/login" />;
+const WrapRouter = () => {
+    const userStore = useSelector((state) => state.user);
+    const dispatch = useDispatch();
+    let location = useLocation();
+    console.log(userStore);
+    if (!userStore.token) {
+        return <Navigate to="/login" state={{ from: location }} replace />;
     }
-    if (id) {
-        console.log("go to home");
+    if (userStore.id) {
         return <Home />;
     }
-    console.log("go to getUserInfo");
-    getUserInfo().then(() => <Home />);
+
+    VerifyToken().then(response => {
+        if (response.decision === 'Allow') {
+            GetUserInfo(response.user_id).then(resp => {
+                dispatch(UserSetInfo(resp))
+            })
+            return
+        }
+        dispatch(UserClear())
+        removeToken();
+    })
 }

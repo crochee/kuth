@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use axum::{
     extract::Extension,
     handler::Handler,
@@ -9,7 +11,7 @@ use axum::{
 };
 use sqlx::MySqlPool;
 use tower_http::{
-    cors::CorsLayer,
+    cors::{AllowHeaders, AllowMethods, AllowOrigin, CorsLayer},
     trace::{DefaultOnResponse, TraceLayer},
     LatencyUnit,
 };
@@ -40,7 +42,14 @@ pub fn api_rest_router(pool: MySqlPool) -> Router {
         )
         .layer(Trace)
         .fallback(not_found.into_service())
-        .layer(CorsLayer::permissive())
+        .layer(
+            CorsLayer::new()
+                .allow_headers(AllowHeaders::mirror_request())
+                .allow_methods(AllowMethods::mirror_request())
+                .allow_origin(AllowOrigin::mirror_request())
+                .allow_credentials(true)
+                .max_age(Duration::from_secs(60) * 60 * 12),
+        )
 }
 
 async fn not_found(uri: Uri) -> impl IntoResponse {

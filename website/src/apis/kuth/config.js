@@ -9,20 +9,21 @@ export default (url, options) => {
         credentials: 'include',
         /*容许跨域**/
         mode: 'cors',
-        headers: new Headers({
+        headers: {
             Accept: 'application/json; charset=utf-8',
-            Authorization: getToken(),
-        }),
+            Authorization: "Bearer " + getToken(),
+        },
         body: null,
     }
-    options.method = options.method || 'GET';
+
+    defaultOptions.method = options.method || 'GET';
     options.code = options.code || 200;
 
-    if (options.method == 'GET' | 'HEAD' | 'DELETE') {
+    if (defaultOptions.method == 'GET' | 'HEAD' | 'DELETE') {
         options.body = null;
     }
     if (options.body) {
-        defaultOptions.headers.set('Content-Type', 'application/json; charset=utf-8');
+        defaultOptions.headers.append('Content-Type', 'application/json; charset=utf-8');
         defaultOptions.body = JSON.stringify(options.body);
     }
     const f = new Promise((resolve, reject) => {
