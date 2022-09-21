@@ -29,7 +29,7 @@ const siderItems = [UserOutlined, LaptopOutlined, NotificationOutlined].map((ico
     };
 });
 
-export default () => {
+const Home = () => {
     const [collapsed, setCollapsed] = useState(false);
     const toggleCollapsed = () => {
         setCollapsed(!collapsed);
@@ -88,3 +88,5 @@ export default () => {
         </Layout.Footer>
     </Layout>
 }
+
+export default Home;

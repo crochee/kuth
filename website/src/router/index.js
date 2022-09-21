@@ -8,7 +8,7 @@ import { VerifyToken } from "../apis/kuth/auth";
 import { UserSetInfo, UserClear } from "../store";
 import { removeToken } from '../utils/auth';
 
-export default () => {
+const Router = () => {
     return <HashRouter>
         <Routes>
             <Route element={<Outlet />}>
@@ -46,3 +46,5 @@ const WrapRouter = () => {
         removeToken();
     })
 }
+
+export default Router;

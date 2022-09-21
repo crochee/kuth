@@ -1,13 +1,14 @@
-import Request, { KuthUrl } from "./config";
+import Request, { KuthUrl } from "./request";
 import { message } from 'antd';
 
 export const PostTokens = (username, password) => {
     var options = {
         method: 'POST',
-        headers: new Headers({
-            "Authorization": "Basic " + btoa(username + ":" + password)
-        }),
+        headers: {
+            Authorization: "Basic MTQwOTcyMzI1MjU1MjU3ODYzOmEwMTIzNDU2Nzg5MDEyMzQ1Ng=="
+        },
     };
+    console.log(options);
     const f = new Promise((resolve, reject) => {
         fetch(KuthUrl + "/v1/auth/tokens", options).then((response) => {
             if (response.status === 200) {
@@ -35,5 +36,5 @@ export const PostTokens = (username, password) => {
 };
 
 export const VerifyToken = () => {
-    return Request("/v1/auth?action=post&path=/v1/auth", { method: "POST" })
+    return Request("/v1/auth?action=post&path=/v1/auth", "POST")
 }

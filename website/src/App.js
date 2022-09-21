@@ -5,7 +5,7 @@ import zhCN from "antd/es/locale/zh_CN";
 import Router from "./router";
 import store from "./store";
 
-export default () => {
+const App = () => {
   return (
     <ConfigProvider locale={zhCN}>
       <Provider store={store}>
@@ -14,3 +14,5 @@ export default () => {
     </ConfigProvider>
   );
 };
+
+export default App;

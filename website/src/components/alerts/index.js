@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './index.css';
 import { ButtonClose } from '../button';
 
-export default (props) => {
+const Alerts = (props) => {
     const {
         message,
         type,
@@ -32,3 +32,5 @@ export default (props) => {
         <ButtonClose onClick={handleColse} />
     </div> : null
 }
+
+export default Alerts;

@@ -3,8 +3,9 @@ import { getToken } from '../../utils/auth';
 
 export const KuthUrl = "http://127.0.0.1:30050";
 
-export default (url, options) => {
-    const defaultOptions = {
+const Request = (url, method = 'GET', code = 200, data = null) => {
+    const options = {
+        method: method,
         /*容许携带cookies*/
         credentials: 'include',
         /*容许跨域**/
@@ -13,25 +14,23 @@ export default (url, options) => {
             Accept: 'application/json; charset=utf-8',
             Authorization: "Bearer " + getToken(),
         },
-        body: null,
+        body: data,
     }
-
-    defaultOptions.method = options.method || 'GET';
-    options.code = options.code || 200;
-
-    if (defaultOptions.method == 'GET' | 'HEAD' | 'DELETE') {
+    console.log(options);
+    if (options.method === 'GET' || options.method === 'HEAD' || options.method === 'DELETE') {
         options.body = null;
     }
     if (options.body) {
-        defaultOptions.headers.append('Content-Type', 'application/json; charset=utf-8');
-        defaultOptions.body = JSON.stringify(options.body);
+        options.headers.append('Content-Type', 'application/json; charset=utf-8');
+        options.body = JSON.stringify(options.body);
     }
+
     const f = new Promise((resolve, reject) => {
-        fetch(KuthUrl + url, defaultOptions).then((response) => {
+        fetch(KuthUrl + url, options).then((response) => {
             if (response.status === 204) {
                 return
             }
-            if (response.status != options.code) {
+            if (response.status !== code) {
                 reject(response.json())
                 return
             }
@@ -55,3 +54,5 @@ export default (url, options) => {
         )
     })
 };
+
+export default Request;

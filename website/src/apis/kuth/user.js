@@ -1,5 +1,5 @@
-import Request from './config';
+import Request from './request';
 
 export const GetUserInfo = (id) => {
-    return Request("/v1/users/" + id)
+    return Request("/v1/users/" + id, 'GET');
 }
