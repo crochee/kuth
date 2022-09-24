@@ -6,41 +6,65 @@ import {
 } from '@ant-design/icons';
 import './index.css';
 import UserDropdown from './user';
-import { Outlet, Link, Navigate, useLocation } from "react-router-dom";
+import { Outlet, Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { GetUserInfo } from "../../apis/kuth/user";
 import { VerifyToken } from "../../apis/kuth/auth";
 import { UserSetInfo, UserClear } from "../../store";
+import Search from "./search";
 
-const headerItems = ['1', '2', '3', '4'].map((key) => ({
-    key,
-    label: `nav ${key}`,
-}));
+const headerItems = [
+    {
+        key: 'invoices',
+        label: (
+            <Link to="/invoices">Invoices</Link>
+        ),
+    },
+    {
+        key: 'expenses',
+        label: (
+            <Link to="/expenses">Expenses</Link>
+        ),
+    },
+];
 
-const siderItems = [UserOutlined, LaptopOutlined, NotificationOutlined].map((icon, index) => {
-    const key = String(index + 1);
-    return {
-        key: `sub${key}`,
-        icon: React.createElement(icon),
-        label: `subnav ${key}`,
-        children: new Array(4).fill(null).map((_, j) => {
-            const subKey = index * 4 + j + 1;
-            return {
-                key: subKey,
-                label: `option${subKey}`,
-            };
-        }),
-    };
-});
+const siderItems = [
+    {
+        label: 'User',
+        key: 'user',
+        icon: <UserOutlined />,
+        children: [
+            {
+                key: '1',
+                label: "sub1"
+            },
+            {
+                key: '2',
+                label: "sub2"
+            }
+        ]
+    },
+    {
+        label: 'Laptop',
+        key: 'laptop',
+        icon: <LaptopOutlined />,
+    },
+    {
+        label: 'Notify',
+        key: 'notify',
+        icon: <NotificationOutlined />,
+    },
+];
 
 const Home = () => {
-    const [collapsed, setCollapsed] = useState(false);
+    const [collapsed, setCollapsed] = useState(true);
     const toggleCollapsed = () => {
         setCollapsed(!collapsed);
     };
     const userStore = useSelector((state) => state.user);
     const dispatch = useDispatch();
     let location = useLocation();
+    const navigate = useNavigate();
     if (!userStore.token) {
         return <Navigate to="/login" state={{ from: location }} />;
     }
@@ -53,6 +77,7 @@ const Home = () => {
                 return
             }
             dispatch(UserClear());
+            navigate("/login", { state: { from: location } });
         })
     }
     return <Layout>
@@ -62,10 +87,13 @@ const Home = () => {
                 <Menu
                     theme="dark"
                     mode="horizontal"
-                    defaultSelectedKeys={['2']}
+                    defaultSelectedKeys={['invoices']}
                     items={headerItems}
                 />
-                <UserDropdown userName={userStore.name} imageUrl={userStore.image} />
+                <Layout className="layout-header-suffix">
+                    <Search />
+                    <UserDropdown userName={userStore.name} imageUrl={userStore.image} />
+                </Layout>
             </Layout>
         </Layout.Header>
         <Layout className="layout-body">
@@ -76,11 +104,11 @@ const Home = () => {
                 })}
                 <Menu
                     mode="inline"
-                    defaultSelectedKeys={['1']}
+                    defaultSelectedKeys={['user']}
                     items={siderItems}
                 />
             </Layout.Sider>
-            <Layout style={{ padding: '0 24px 24px' }}>
+            <Layout style={{ padding: '0 24px' }}>
                 <Layout.Content
                     className="layout-background"
                     style={{
@@ -89,9 +117,6 @@ const Home = () => {
                         minHeight: 280,
                     }}
                 >
-                    <p>Content</p>
-                    <Link to="/invoices">Invoices</Link> |{" "}
-                    <Link to="/expenses">Expenses</Link>
                     <Outlet />
                 </Layout.Content>
             </Layout>

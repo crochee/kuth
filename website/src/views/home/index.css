@@ -20,7 +20,8 @@
     font-size: 32px;
 }
 
-.layout-header-content {
+.layout-header-content,
+.layout-header-suffix {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
