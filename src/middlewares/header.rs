@@ -10,7 +10,6 @@ use axum::{
 use http::HeaderValue;
 use sqlx::MySqlPool;
 use tower::{Layer, Service};
-use validator::Validate;
 
 use crate::{
     service::{
@@ -83,21 +82,19 @@ pub async fn check_headers<B>(mut req: Request<B>, next: Next<B>) -> Response {
                 Ok(v) => v,
                 Err(err) => return err.into_response(),
             };
-        // 获取query
-        let request_value: ARequest =
-            match serde_urlencoded::from_str(req.uri().query().unwrap_or_default()) {
-                Ok(v) => v,
-                Err(err) => return Error::Forbidden(err.to_string()).into_response(),
-            };
-        if let Err(err) = request_value.validate() {
-            return Error::Validates(err).into_response();
-        };
-        if request_value.resource.is_none() && request_value.path.is_none() {
-            return Error::BadRequest("both resource and path are empty".to_owned())
-                .into_response();
-        }
         // 校验token
-        let resp = match bearer::parse(pool, value.token(), &request_value).await {
+        let resp = match bearer::parse(
+            pool,
+            value.token(),
+            &ARequest {
+                resource: None,
+                sub_resource: None,
+                path: Some(req.uri().path().to_owned()),
+                action: req.method().to_string(),
+            },
+        )
+        .await
+        {
             Ok(v) => v,
             Err(err) => {
                 if Error::NotFound("".to_owned()).eq(&err) {

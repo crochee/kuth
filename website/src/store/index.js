@@ -1,12 +1,14 @@
-import {  combineReducers, configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import thunk from 'redux-thunk';
-import user from './reducers/user';
+import User from './reducers/user';
 
-export const { UserSetToken, UserSetInfo, UserClear, UserGet } = user.actions;
+export const { UserSetToken, UserSetInfo, UserClear } = User.actions;
 
-export default configureStore({
+const Store = configureStore({
     reducer: combineReducers({
-        user: user.reducer,
+        user: User.reducer,
     }),
     middleware: [thunk],
 });
+
+export default Store;

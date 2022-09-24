@@ -4,25 +4,21 @@ import { Button, Checkbox, Form, Input } from 'antd';
 import { PostTokens } from '../../apis/kuth/auth';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useDispatch } from 'react-redux';
-import { setToken } from '../../utils/auth';
 import { GetUserInfo } from "../../apis/kuth/user";
-import { UserSetInfo, UserSetToken } from "../../store";
-//import { useNavigate, useLocation } from "react-router-dom";
+import { UserSetToken, UserSetInfo } from "../../store";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const Login = () => {
     const dispatch = useDispatch();
-    // let navigate = useNavigate();
-    // let location = useLocation();
-    // let from = location.state?.from?.pathname || "/";
+    let location = useLocation();
+    let from = location.state?.from?.pathname || "/";
+    const navigate = useNavigate();
     const onFinish = (values) => {
-        console.log('Received values of form: ', values.username, values.password);
         PostTokens(values.username, values.password).then((response) => {
-            console.log('Received : ', response);
             dispatch(UserSetToken(response.Token));
-            setToken(response.Token);
             GetUserInfo(response.User).then(resp => {
-                dispatch(UserSetInfo(resp));
-               // navigate(from, { replace: true });
+                dispatch(UserSetInfo(resp))
+                navigate(from, { replace: true });
             })
         })
     };

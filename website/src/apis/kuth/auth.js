@@ -8,7 +8,6 @@ export const PostTokens = (username, password) => {
             Authorization: "Basic MTQwOTcyMzI1MjU1MjU3ODYzOmEwMTIzNDU2Nzg5MDEyMzQ1Ng=="
         },
     };
-    console.log(options);
     const f = new Promise((resolve, reject) => {
         fetch(KuthUrl + "/v1/auth/tokens", options).then((response) => {
             if (response.status === 200) {

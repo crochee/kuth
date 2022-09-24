@@ -3,12 +3,12 @@ import { Provider } from "react-redux";
 import { ConfigProvider } from "antd";
 import zhCN from "antd/es/locale/zh_CN";
 import Router from "./router";
-import store from "./store";
+import Store from "./store";
 
 const App = () => {
   return (
     <ConfigProvider locale={zhCN}>
-      <Provider store={store}>
+      <Provider store={Store}>
         <Router />
       </Provider>
     </ConfigProvider>

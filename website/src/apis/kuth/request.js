@@ -16,7 +16,6 @@ const Request = (url, method = 'GET', code = 200, data = null) => {
         },
         body: data,
     }
-    console.log(options);
     if (options.method === 'GET' || options.method === 'HEAD' || options.method === 'DELETE') {
         options.body = null;
     }

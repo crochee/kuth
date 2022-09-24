@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { Button, Breadcrumb, Layout, Menu } from 'antd';
+import { Layout, Menu } from 'antd';
 import {
     LaptopOutlined, NotificationOutlined, UserOutlined, MenuFoldOutlined,
     MenuUnfoldOutlined,
 } from '@ant-design/icons';
 import './index.css';
-import User from './user';
-import Alerts from '../../components/alerts';
+import UserDropdown from './user';
+import { Outlet, Link, Navigate, useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from 'react-redux';
+import { GetUserInfo } from "../../apis/kuth/user";
+import { VerifyToken } from "../../apis/kuth/auth";
+import { UserSetInfo, UserClear } from "../../store";
 
 const headerItems = ['1', '2', '3', '4'].map((key) => ({
     key,
@@ -34,9 +38,26 @@ const Home = () => {
     const toggleCollapsed = () => {
         setCollapsed(!collapsed);
     };
+    const userStore = useSelector((state) => state.user);
+    const dispatch = useDispatch();
+    let location = useLocation();
+    if (!userStore.token) {
+        return <Navigate to="/login" state={{ from: location }} />;
+    }
+    if (!userStore.id) {
+        VerifyToken().then(response => {
+            if (response.decision === 'Allow') {
+                GetUserInfo(response.user_id).then(resp => {
+                    dispatch(UserSetInfo(resp))
+                })
+                return
+            }
+            dispatch(UserClear());
+        })
+    }
     return <Layout>
         <Layout.Header className="layout-header">
-            <div className="layout-header-logo" >Kuth</div>
+            <Link to="/" className="layout-header-logo">Kuth</Link>
             <Layout className="layout-header-content">
                 <Menu
                     theme="dark"
@@ -44,7 +65,7 @@ const Home = () => {
                     defaultSelectedKeys={['2']}
                     items={headerItems}
                 />
-                <User userName="crochee" />
+                <UserDropdown userName={userStore.name} imageUrl={userStore.image} />
             </Layout>
         </Layout.Header>
         <Layout className="layout-body">
@@ -60,11 +81,6 @@ const Home = () => {
                 />
             </Layout.Sider>
             <Layout style={{ padding: '0 24px 24px' }}>
-                <Breadcrumb style={{ margin: '16px 0' }}>
-                    <Breadcrumb.Item>Home</Breadcrumb.Item>
-                    <Breadcrumb.Item>List</Breadcrumb.Item>
-                    <Breadcrumb.Item>App</Breadcrumb.Item>
-                </Breadcrumb>
                 <Layout.Content
                     className="layout-background"
                     style={{
@@ -73,9 +89,10 @@ const Home = () => {
                         minHeight: 280,
                     }}
                 >
-                    <Button type="primary">Button</Button>
-                    <Alerts message="test" type="error" />
                     <p>Content</p>
+                    <Link to="/invoices">Invoices</Link> |{" "}
+                    <Link to="/expenses">Expenses</Link>
+                    <Outlet />
                 </Layout.Content>
             </Layout>
         </Layout>
@@ -86,7 +103,7 @@ const Home = () => {
         >
             Kuth ©2022 Created by crochee
         </Layout.Footer>
-    </Layout>
+    </Layout >
 }
 
 export default Home;

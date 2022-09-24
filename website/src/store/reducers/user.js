@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getToken, } from '../../utils/auth';
+import { getToken, setToken, removeToken } from '../../utils/auth';
 
-export default createSlice({
+const User = createSlice({
     name: 'user',
     initialState: {
         id: "",
@@ -17,7 +17,8 @@ export default createSlice({
     },
     reducers: {
         UserSetToken: (state, { payload }) => {
-            state.token = payload.token
+            state.token = payload;
+            setToken(payload);
         },
         UserSetInfo: (state, { payload }) => {
             state.id = payload.id;
@@ -42,14 +43,10 @@ export default createSlice({
                 sex: null,
                 image: null,
                 token: "",
-            }
+            };
+            removeToken();
         },
-        UserGet: (state) => {
-            return state
-        }
     }
 })
 
-export const UserSetToken = "USER_SET_USER_TOKEN";
-export const UserSetInfo = "USER_SET_USER_INFO";
-export const UserClear = "USER_RESET_USER";
+export default User;

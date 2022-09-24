@@ -1,50 +1,21 @@
-import React from "react";
-import { HashRouter, Route, Routes, Navigate, useLocation, Outlet } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "../views/home";
 import Login from "../views/login";
-import { useSelector, useDispatch } from 'react-redux';
-import { GetUserInfo } from "../apis/kuth/user";
-import { VerifyToken } from "../apis/kuth/auth";
-import { UserSetInfo, UserClear } from "../store";
-import { removeToken } from '../utils/auth';
+import NotFound from "../views/notfound";
 
 const Router = () => {
-    return <HashRouter>
+    return <BrowserRouter>
         <Routes>
-            <Route element={<Outlet />}>
-                <Route path="/login" element={<Login />} />
-                <Route
-                    path="/"
-                    element={<WrapRouter />}
-                />
+            <Route exact path="/login" element={<Login />} />
+            <Route path="/" element={<Home />}>
+                <Route path="expenses" element={<div>expenses</div>} />
+                <Route path="invoices" element={<div>invoices</div>} />
+                <Route path="iam" element={<div>iam</div>} />
+                <Route path="about" element={<div>about</div>} />
             </Route>
+            <Route path="*" element={<NotFound />} />
         </Routes>
-    </HashRouter>
-}
-
-
-const WrapRouter = () => {
-    const userStore = useSelector((state) => state.user);
-    const dispatch = useDispatch();
-    let location = useLocation();
-    console.log(userStore);
-    if (!userStore.token) {
-        return <Navigate to="/login" state={{ from: location }} replace />;
-    }
-    if (userStore.id) {
-        return <Home />;
-    }
-
-    VerifyToken().then(response => {
-        if (response.decision === 'Allow') {
-            GetUserInfo(response.user_id).then(resp => {
-                dispatch(UserSetInfo(resp))
-            })
-            return
-        }
-        dispatch(UserClear())
-        removeToken();
-    })
+    </BrowserRouter>
 }
 
 export default Router;
