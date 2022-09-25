@@ -70,12 +70,10 @@ const Home = () => {
     }
     if (!userStore.id) {
         VerifyToken().then(response => {
-            if (response.decision === 'Allow') {
-                GetUserInfo(response.user_id).then(resp => {
-                    dispatch(UserSetInfo(resp))
-                })
-                return
-            }
+            GetUserInfo(response.user_id).then(resp => {
+                dispatch(UserSetInfo(resp))
+            })
+        }).catch(() => {
             dispatch(UserClear());
             navigate("/login", { state: { from: location } });
         })

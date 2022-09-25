@@ -39,18 +39,7 @@ const Iam = () => {
                 items={iamItems}
             />
         </Layout.Sider>
-        <Layout style={{ padding: '0 12px' }}>
-            <Layout.Content
-                className="layout-background"
-                style={{
-                    padding: 24,
-                    margin: 0,
-                    minHeight: 280,
-                }}
-            >
-                <Outlet />
-            </Layout.Content>
-        </Layout>
+        <Outlet />
     </Layout>
 }
 

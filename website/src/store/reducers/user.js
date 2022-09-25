@@ -37,7 +37,7 @@ const User = createSlice({
                 account_id: "",
                 admin: 0,
                 name: "",
-                desc: "test",
+                desc: "",
                 email: null,
                 check: 0,
                 sex: null,

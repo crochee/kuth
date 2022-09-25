@@ -11,8 +11,8 @@ use sqlx::MySqlPool;
 
 use crate::{
     service::{
-        authentication::{self, basic, bearer, Effect},
-        authorization::{Abac, Attribute, Decision, Matchers},
+        authentication::{self, basic, bearer},
+        authorization::{Abac, Attribute, Matchers},
     },
     utils::valid::Valid,
     Error, Result,
@@ -51,21 +51,7 @@ pub async fn verify_token(
             "both resource and path are empty".to_owned(),
         ));
     }
-    let resp = match bearer::parse(pool, value.token(), &request_value).await {
-        Ok(v) => v,
-        Err(err) => {
-            if Error::NotFound("".to_owned()).eq(&err) {
-                return Ok(Effect {
-                    decision: Decision::Deny.to_string(),
-                    reason: err.to_string(),
-                    user_id: Default::default(),
-                    account_id: Default::default(),
-                }
-                .into());
-            }
-            return Err(err);
-        }
-    };
+    let resp = bearer::parse(pool, value.token(), &request_value).await?;
     Ok(resp.into())
 }
 

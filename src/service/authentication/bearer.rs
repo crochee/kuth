@@ -46,10 +46,14 @@ pub async fn parse(pool: MySqlPool, token: &str, r: &super::Request) -> Result<s
         serde_json::to_string(&att).map_err(Error::any)?
     );
     let (d, reason) = Abac.authorize(&pool, &att).await?;
-    Ok(super::Effect {
-        decision: d.to_string(),
-        reason,
-        user_id: c.claims.id,
-        account_id: c.claims.account_id,
-    })
+    match d {
+        crate::service::authorization::Decision::Deny => Err(Error::Forbidden(reason)),
+        crate::service::authorization::Decision::Allow => Ok(super::Effect {
+            decision: d.to_string(),
+            reason,
+            user_id: c.claims.id,
+            account_id: c.claims.account_id,
+        }),
+        crate::service::authorization::Decision::Nop => Err(Error::Forbidden(reason)),
+    }
 }
