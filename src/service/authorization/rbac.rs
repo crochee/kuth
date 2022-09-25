@@ -1,16 +1,12 @@
 use sqlx::MySqlPool;
 
-use crate::{model::cache::Policy, Result};
+use crate::{model::cache::Policy, Error, Result};
 
 pub struct Rbac;
 
 #[async_trait::async_trait]
 impl super::Matchers for Rbac {
-    async fn authorize(
-        &self,
-        pool: &MySqlPool,
-        att: &super::Attribute,
-    ) -> Result<(super::Decision, String)> {
+    async fn authorize(&self, pool: &MySqlPool, att: &super::Attribute) -> Result<()> {
         tracing::info!("{:?}", att.resource);
         tracing::info!("{}", att.action);
         let role_policys = super::get_policys(pool, &att.user_id).await?;
@@ -18,13 +14,13 @@ impl super::Matchers for Rbac {
         for policy in role_policys.iter() {
             if self.visit(policy, att) {
                 match policy.statement.effect.as_str() {
-                    "Allow" => return Ok((super::Decision::Allow, "".to_string())),
-                    "Deny" => return Ok((super::Decision::Deny, "".to_string())),
-                    _ => return Ok((super::Decision::Nop, "".to_string())),
+                    "Allow" => return Ok(()),
+                    "Deny" => return Err(Error::Forbidden("Deny".to_string())),
+                    _ => return Err(Error::Forbidden("nop".to_string())),
                 }
             }
         }
-        Ok((super::Decision::Nop, "not impl".to_string()))
+        Err(Error::Forbidden("not impl".to_string()))
     }
 }
 

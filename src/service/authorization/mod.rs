@@ -48,37 +48,7 @@ impl Attribute {
 
 #[async_trait::async_trait]
 pub trait Matchers {
-    async fn authorize(&self, pool: &MySqlPool, att: &Attribute) -> Result<(Decision, String)>;
-}
-
-#[derive(Clone)]
-pub enum Decision {
-    Deny,
-    Allow,
-    Nop,
-}
-
-impl Default for Decision {
-    fn default() -> Self {
-        Decision::Deny
-    }
-}
-
-impl ToString for Decision {
-    fn to_string(&self) -> String {
-        match *self {
-            Decision::Deny => "Deny",
-            Decision::Allow => "Allow",
-            Decision::Nop => "Nop",
-        }
-        .to_string()
-    }
-}
-
-impl std::fmt::Debug for Decision {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.to_string())
-    }
+    async fn authorize(&self, pool: &MySqlPool, att: &Attribute) -> Result<()>;
 }
 
 pub async fn get_policys(pool: &MySqlPool, uid: &str) -> Result<Vec<Policy>> {

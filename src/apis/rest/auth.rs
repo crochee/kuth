@@ -65,13 +65,7 @@ where
 pub async fn authorization(
     Valid(att): Valid<Json<Attribute>>,
     Extension(pool): Extension<MySqlPool>,
-) -> Result<Json<authentication::Effect>> {
-    let (d, reason) = Abac.authorize(&pool, &att).await?;
-    Ok(authentication::Effect {
-        decision: d.to_string(),
-        reason,
-        user_id: att.user_id.clone(),
-        account_id: att.account_id.clone(),
-    }
-    .into())
+) -> Result<()> {
+    Abac.authorize(&pool, &att).await?;
+    Ok(())
 }

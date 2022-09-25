@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Layout, Menu } from 'antd';
 import {
     LaptopOutlined, NotificationOutlined, UserOutlined, MenuFoldOutlined,
@@ -6,7 +6,7 @@ import {
 } from '@ant-design/icons';
 import './index.css';
 import UserDropdown from './user';
-import { Outlet, Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
 import { GetUser } from "../../apis/kuth/user";
 import { VerifyToken } from "../../apis/kuth/auth";
@@ -62,22 +62,6 @@ const Home = () => {
         setCollapsed(!collapsed);
     };
     const userStore = useSelector((state) => state.user);
-    const dispatch = useDispatch();
-    let location = useLocation();
-    const navigate = useNavigate();
-    if (!userStore.token) {
-        return <Navigate to="/login" state={{ from: location }} />;
-    }
-    if (!userStore.id) {
-        VerifyToken().then(response => {
-            GetUser(response.user_id).then(resp => {
-                dispatch(UserSetInfo(resp))
-            })
-        }).catch(() => {
-            dispatch(UserClear());
-            navigate("/login", { state: { from: location } });
-        })
-    }
     return <Layout>
         <Layout.Header className="layout-header">
             <Link to="/" className="layout-header-logo">Kuth</Link>
@@ -93,6 +77,7 @@ const Home = () => {
                     <UserDropdown userName={userStore.name} imageUrl={userStore.image} />
                 </Layout>
             </Layout>
+            <CheckAuth />
         </Layout.Header>
         <Layout className="layout-body">
             <Layout.Sider className="layout-sider" trigger={null} collapsible collapsed={collapsed}>
@@ -130,3 +115,26 @@ const Home = () => {
 }
 
 export default Home;
+
+
+const CheckAuth = () => {
+    const userStore = useSelector((state) => state.user);
+    const dispatch = useDispatch();
+    let location = useLocation();
+    const navigate = useNavigate();
+    useEffect(() => {
+        if (!userStore.token) {
+            navigate("/login", { state: { from: location }, replace: true });
+            return
+        }
+        VerifyToken().then(response => {
+            GetUser(response.user_id).then(resp => {
+                dispatch(UserSetInfo(resp))
+            })
+        }).catch(() => {
+            dispatch(UserClear());
+            navigate("/login", { state: { from: location }, replace: true });
+        })
+    })
+    return (<></>)
+}

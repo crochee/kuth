@@ -1,28 +1,24 @@
 use sqlx::MySqlPool;
 
-use crate::{model::cache::Policy, Result};
+use crate::{model::cache::Policy, Error, Result};
 
 pub struct Abac;
 
 #[async_trait::async_trait]
 impl super::Matchers for Abac {
-    async fn authorize(
-        &self,
-        pool: &MySqlPool,
-        att: &super::Attribute,
-    ) -> Result<(super::Decision, String)> {
+    async fn authorize(&self, pool: &MySqlPool, att: &super::Attribute) -> Result<()> {
         let policys = super::get_policys(pool, &att.user_id).await?;
         tracing::debug!("{:?}", policys);
         for policy in policys.iter() {
             if self.matches(policy, att) {
                 match policy.statement.effect.as_str() {
-                    "Allow" => return Ok((super::Decision::Allow, "".to_string())),
-                    "Deny" => return Ok((super::Decision::Deny, "".to_string())),
-                    _ => return Ok((super::Decision::Nop, "".to_string())),
+                    "Allow" => return Ok(()),
+                    "Deny" => return Err(Error::Forbidden("Deny".to_string())),
+                    _ => return Err(Error::Forbidden("nop".to_string())),
                 }
             }
         }
-        Ok((super::Decision::Nop, "not matched".to_string()))
+        Err(Error::Forbidden("not matched".to_string()))
     }
 }
 

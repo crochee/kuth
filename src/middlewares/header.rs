@@ -5,17 +5,13 @@ use axum::{
     http::Request,
     middleware::Next,
     response::{IntoResponse, Response},
-    Json,
 };
 use http::HeaderValue;
 use sqlx::MySqlPool;
 use tower::{Layer, Service};
 
 use crate::{
-    service::{
-        authentication::{bearer, Request as ARequest},
-        authorization::Decision,
-    },
+    service::authentication::{bearer, Request as ARequest},
     Error,
 };
 
@@ -100,9 +96,6 @@ pub async fn check_headers<B>(mut req: Request<B>, next: Next<B>) -> Response {
                 return err.into_response();
             }
         };
-        if !resp.decision.eq(&Decision::Allow.to_string()) {
-            return Json(resp).into_response();
-        }
         // 重新赋值请求头
         let header = req.headers_mut();
         match HeaderValue::from_str(&resp.account_id) {

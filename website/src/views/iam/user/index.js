@@ -65,7 +65,7 @@ const Users = () => {
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
     const [batchDeleteUnableState, setBatchDeleteUnableState] = useState(true);
-    const [selectDeleteData, setSelectDeleteData] = useState([]);
+    //const [selectDeleteData, setSelectDeleteData] = useState([]);
     const [data, setData] = useState([]);
     const rowSelection = {
         onChange: (selectedRowKeys, selectedRows, info) => {
@@ -74,7 +74,7 @@ const Users = () => {
             } else {
                 setBatchDeleteUnableState(false);
             }
-            setSelectDeleteData(selectedRows);
+            // setSelectDeleteData(selectedRows);
             console.log(`selectedRowKeys:`, selectedRowKeys, "selectedRows:", selectedRows, `info:`, info);
         },
         getCheckboxProps: (record) => ({

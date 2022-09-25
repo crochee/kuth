@@ -31,8 +31,6 @@ pub struct Request {
 
 #[derive(Debug, Serialize)]
 pub struct Effect {
-    pub decision: String,
-    pub reason: String,
     pub user_id: String,
     pub account_id: String,
 }

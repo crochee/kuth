@@ -4,8 +4,7 @@ import { Button, Checkbox, Form, Input } from 'antd';
 import { PostTokens } from '../../apis/kuth/auth';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useDispatch } from 'react-redux';
-import { GetUser } from "../../apis/kuth/user";
-import { UserSetToken, UserSetInfo } from "../../store";
+import { UserSetToken } from "../../store";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Login = () => {
@@ -16,10 +15,7 @@ const Login = () => {
     const onFinish = (values) => {
         PostTokens(values.username, values.password).then((response) => {
             dispatch(UserSetToken(response.Token));
-            GetUser(response.User).then(resp => {
-                dispatch(UserSetInfo(resp))
-                navigate(from, { replace: true });
-            })
+            navigate(from, { replace: true });
         })
     };
     return (
