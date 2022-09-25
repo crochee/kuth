@@ -4,7 +4,7 @@ import { Button, Checkbox, Form, Input } from 'antd';
 import { PostTokens } from '../../apis/kuth/auth';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useDispatch } from 'react-redux';
-import { GetUserInfo } from "../../apis/kuth/user";
+import { GetUser } from "../../apis/kuth/user";
 import { UserSetToken, UserSetInfo } from "../../store";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -16,7 +16,7 @@ const Login = () => {
     const onFinish = (values) => {
         PostTokens(values.username, values.password).then((response) => {
             dispatch(UserSetToken(response.Token));
-            GetUserInfo(response.User).then(resp => {
+            GetUser(response.User).then(resp => {
                 dispatch(UserSetInfo(resp))
                 navigate(from, { replace: true });
             })
@@ -67,7 +67,7 @@ const Login = () => {
             </Form.Item>
             <Form.Item>
                 <Button type="primary" htmlType="submit" className="login-form-button">
-                    Log in
+                    Login
                 </Button>
                 Or <a href="/">register now!</a>
             </Form.Item>

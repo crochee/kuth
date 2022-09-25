@@ -8,7 +8,7 @@ import './index.css';
 import UserDropdown from './user';
 import { Outlet, Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import { GetUserInfo } from "../../apis/kuth/user";
+import { GetUser } from "../../apis/kuth/user";
 import { VerifyToken } from "../../apis/kuth/auth";
 import { UserSetInfo, UserClear } from "../../store";
 import Search from "./search";
@@ -70,7 +70,7 @@ const Home = () => {
     }
     if (!userStore.id) {
         VerifyToken().then(response => {
-            GetUserInfo(response.user_id).then(resp => {
+            GetUser(response.user_id).then(resp => {
                 dispatch(UserSetInfo(resp))
             })
         }).catch(() => {

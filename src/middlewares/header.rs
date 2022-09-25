@@ -13,7 +13,7 @@ use tower::{Layer, Service};
 
 use crate::{
     service::{
-        authentication::{bearer, Effect, Request as ARequest},
+        authentication::{bearer, Request as ARequest},
         authorization::Decision,
     },
     Error,
@@ -97,15 +97,6 @@ pub async fn check_headers<B>(mut req: Request<B>, next: Next<B>) -> Response {
         {
             Ok(v) => v,
             Err(err) => {
-                if Error::NotFound("".to_owned()).eq(&err) {
-                    return Json(Effect {
-                        decision: Decision::Deny.to_string(),
-                        reason: err.to_string(),
-                        user_id: Default::default(),
-                        account_id: Default::default(),
-                    })
-                    .into_response();
-                }
                 return err.into_response();
             }
         };

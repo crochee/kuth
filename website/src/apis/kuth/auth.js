@@ -1,4 +1,4 @@
-import Request, { KuthUrl } from "./request";
+import { KuthUrl } from "./request";
 import { message } from 'antd';
 import { getToken } from '../../utils/auth';
 
@@ -77,6 +77,4 @@ export const VerifyToken = () => {
             }
         )
     })
-
-    return Request("/v1/auth?action=post&path=/v1/auth", "POST")
 }

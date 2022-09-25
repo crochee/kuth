@@ -1,9 +1,13 @@
 import Request from './request';
 
-export const GetUserInfo = (id) => {
+export const GetUser = (id) => {
     return Request("/v1/users/" + id);
 }
 
-export const GetUserList = (limit, offset) => {
+export const GetUsers = (limit, offset) => {
     return Request("/v1/users?limit=" + limit + "&offset=" + offset);
+}
+
+export const DeleteUser = (id) => {
+    return Request("/v1/users/" + id, 'DELETE');
 }

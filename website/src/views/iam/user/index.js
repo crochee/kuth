@@ -2,26 +2,27 @@ import {
     Layout,
     PageHeader,
     Table,
-    Tag,
-    Form,
     Button,
-    Input,
-    Collapse,
-    Pagination,
-    Divider,
-    message,
-    Select,
-    Space
+    Space,
 } from "antd";
-import { DownOutlined } from '@ant-design/icons';
+import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
-import './index.css';
-import { useSearchParams, useLocation, useNavigate } from "react-router-dom";
-import { GetUserList } from "../../../apis/kuth/user";
+import { useSearchParams, Link } from "react-router-dom";
+import { GetUsers } from "../../../apis/kuth/user";
+import { User, CreateUserDrawer } from "./form";
 
 const columns = [
     {
-        title: '用户名/ID',
+        title: '用户ID',
+        dataIndex: 'id',
+        render: (text) => {
+            return <Space size="large">
+                <Link to={`/iam/users/${text}`}>{text}</Link>
+            </Space>
+        },
+    },
+    {
+        title: '用户名',
         dataIndex: 'name',
     },
     {
@@ -48,45 +49,45 @@ const columns = [
         render: (row) => {
             // console.log(row);
             return <Space size="large">
-                <a>Delete</a>
-                <a>
+                <Button type="primary">Delete</Button>
+                <Button type="primary">
                     <Space>
                         More actions
                         <DownOutlined />
                     </Space>
-                </a>
+                </Button>
             </Space>
         },
     },
 ];
 
-
-const UserList = () => {
+const Users = () => {
     const [loading, setLoading] = useState(false);
-    const [deleteUnableState, setDeleteUnableState] = useState(true);
+    const [open, setOpen] = useState(false);
+    const [batchDeleteUnableState, setBatchDeleteUnableState] = useState(true);
     const [selectDeleteData, setSelectDeleteData] = useState([]);
     const [data, setData] = useState([]);
     const rowSelection = {
         onChange: (selectedRowKeys, selectedRows, info) => {
             if (selectedRows.length === 0) {
-                setDeleteUnableState(true);
+                setBatchDeleteUnableState(true);
             } else {
-                setDeleteUnableState(false);
+                setBatchDeleteUnableState(false);
             }
             setSelectDeleteData(selectedRows);
-            console.log(`selectedRowKeys: ${selectedRowKeys} selectedRows: ${selectedRows} info:${info}`);
+            console.log(`selectedRowKeys:`, selectedRowKeys, "selectedRows:", selectedRows, `info:`, info);
         },
         getCheckboxProps: (record) => ({
-            disabled: record.admin === "企业管理人员1",
-            name: record.name,
+            disabled: record.admin === "企业管理人员",
+            id: record.id,
         }),
     };
-    let [searchParams, setSearchParams] = useSearchParams();
-    let limit = searchParams.get('limit') || 20;
-    let offset = searchParams.get('offset') || 0;
+    const [searchParams, setSearchParams] = useSearchParams();
+    const limit = searchParams.get('limit') || 20;
+    const offset = searchParams.get('offset') || 0;
     useEffect(() => {
         setLoading(true);
-        GetUserList(limit, offset).then((resp) => {
+        GetUsers(limit, offset).then((resp) => {
             setData(resp.data.map((value, index) => {
                 let admin = "普通角色";
                 if (value.admin === 2) {
@@ -94,11 +95,8 @@ const UserList = () => {
                 }
                 return {
                     key: index,
-                    name: value.name + "/" + value.id,
+                    ...value,
                     admin,
-                    desc: value.desc,
-                    created_at: value.created_at,
-                    updated_at: value.updated_at,
                 }
             }));
             setSearchParams({
@@ -107,15 +105,15 @@ const UserList = () => {
             })
         })
         setLoading(false);
-    }, [])
+    }, [limit, offset, setSearchParams]);
 
     return <Layout style={{ padding: '0 12px' }}>
         <PageHeader
             ghost={true}
             title="用户"
             extra={[
-                <Button key="2" disabled={deleteUnableState}>删除用户</Button>,
-                <Button key="1" type="primary">创建用户</Button>
+                <Button key="2" disabled={batchDeleteUnableState}>删除用户</Button>,
+                <Button key="1" type="primary" icon={<PlusOutlined />} onClick={() => { setOpen(true) }}>创建用户</Button>
             ]}
         >
         </PageHeader>
@@ -138,9 +136,12 @@ const UserList = () => {
                 columns={columns}
                 dataSource={data}
             />
+            <CreateUserDrawer open={open} setOpen={setOpen} />
         </Layout.Content>
     </Layout>
 }
 
 
-export default UserList;
+
+export default Users;
+export { User };

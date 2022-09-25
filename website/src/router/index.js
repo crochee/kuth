@@ -3,7 +3,7 @@ import Home from "../views/home";
 import Login from "../views/login";
 import NotFound from "../views/notfound";
 import Iam from "../views/iam";
-import UserList from "../views/iam/user";
+import Users, { User } from "../views/iam/user";
 
 const Router = () => {
     return <BrowserRouter>
@@ -14,7 +14,8 @@ const Router = () => {
                 <Route path="invoices" element={<div>invoices</div>} />
                 <Route path="iam" element={<Navigate to="/iam/users" />} />
                 <Route path="iam" element={<Iam />}>
-                    <Route path="users" element={<UserList />} />
+                    <Route path="users" element={<Users />} />
+                    <Route path="users/:id" element={<User />} />
                     <Route path="groups" element={<div>groups</div>} />
                     <Route path="secrets" element={<div>secrets</div>} />
                     <Route path="policys" element={<div>policys</div>} />
