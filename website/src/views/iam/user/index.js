@@ -8,7 +8,7 @@ import {
 import { DownOutlined, PlusOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from "react-router-dom";
-import { GetUsers } from "../../../apis/kuth/user";
+import { GetUsers, DeleteUser } from "../../../apis/kuth/user";
 import { User, CreateUserDrawer } from "./form";
 
 const columns = [
@@ -47,9 +47,10 @@ const columns = [
         title: '操作',
         key: 'action',
         render: (row) => {
-            // console.log(row);
             return <Space size="large">
-                <Button type="primary">Delete</Button>
+                <Button type="primary" onClick={() => {
+                    DeleteUser(row.id).then(() => { });
+                }}>Delete</Button>
                 <Button type="primary">
                     <Space>
                         More actions

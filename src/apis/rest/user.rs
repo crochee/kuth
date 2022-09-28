@@ -24,7 +24,7 @@ pub async fn create(
     Extension(pool): Extension<MySqlPool>,
 ) -> Result<(StatusCode, Json<ID>)> {
     content.account_id = info.account_id;
-    content.admin = 2;
+    content.admin = 1;
     let resp = user::create(&pool, &content).await?;
     Ok((StatusCode::CREATED, resp.into()))
 }

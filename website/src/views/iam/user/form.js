@@ -20,7 +20,7 @@ import {
     Input,
 } from 'antd';
 import { useParams, Link } from "react-router-dom";
-import { GetUser } from '../../../apis/kuth/user';
+import { GetUser, CreateUser } from '../../../apis/kuth/user';
 import { useState, useEffect } from 'react';
 
 export const User = () => {
@@ -106,8 +106,13 @@ export const CreateUserDrawer = (props) => {
             return
         }
         setOpen(false);
-        console.log(form.getFieldsValue());
         form.submit();
+        CreateUser(
+            form.getFieldValue("name"),
+            form.getFieldValue("password"),
+            form.getFieldValue("desc")).then((result) => {
+                console.log(result.id);
+            })
         form.resetFields();
     };
     return <Drawer

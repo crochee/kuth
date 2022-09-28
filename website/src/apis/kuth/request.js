@@ -20,7 +20,10 @@ const Request = (url, method = 'GET', code = 200, data = null) => {
         options.body = null;
     }
     if (options.body) {
-        options.headers.append('Content-Type', 'application/json; charset=utf-8');
+        options.headers = {
+            ...options.headers,
+            'Content-Type': 'application/json; charset=utf-8',
+        };
         options.body = JSON.stringify(options.body);
     }
 
