@@ -84,6 +84,7 @@ impl Cache {
     pub async fn get_temp_secret(&self, uid: &str) -> Result<String> {
         self.get_kv(format!("kuth:temp_secret:{}", uid).as_str())
             .await
+            .map_err(|err| Error::Forbidden(err.to_string()))
     }
 
     pub async fn set_password(&self, uid: &str, value: &Password) -> Result<()> {

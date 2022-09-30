@@ -1,5 +1,5 @@
 import { message } from 'antd';
-import { getToken } from '../../utils/auth';
+import { getToken, removeToken } from '../../utils/auth';
 
 export const KuthUrl = "http://127.0.0.1:30050";
 
@@ -61,7 +61,15 @@ export const Request = (url, method = 'GET', code = 200, data = null) => {
         options.body = JSON.stringify(options.body);
     }
     return new Promise((resolve, reject) => {
-        fetch(KuthUrl + url, options).then(resolve).catch(reject)
+        fetch(KuthUrl + url, options).then((response) => {
+            if (response.status === 403) {
+                response.json().then((resp) => {
+                    message.error(resp.message, 30, removeToken);
+                })
+                return
+            }
+            resolve(response)
+        }).catch(reject)
     })
 }
 

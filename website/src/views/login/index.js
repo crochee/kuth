@@ -1,11 +1,12 @@
 import React from 'react';
 import './index.css';
 import { Button, Checkbox, Form, Input } from 'antd';
-import { PostTokens } from '../../apis/kuth';
+import Invoke, { PostTokens } from '../../apis/kuth';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useDispatch } from 'react-redux';
-import { UserSetToken } from "../../store";
+import { UserSetInfo, UserClear } from "../../store";
 import { useNavigate, useLocation } from "react-router-dom";
+import { setToken } from '../../utils/auth';
 
 const Login = () => {
     const dispatch = useDispatch();
@@ -14,8 +15,13 @@ const Login = () => {
     const navigate = useNavigate();
     const onFinish = (values) => {
         PostTokens(values.username, values.password).then((response) => {
-            dispatch(UserSetToken(response.Token));
-            navigate(from, { replace: true });
+            setToken(response.Token);
+            Invoke("/v1/users/" + response.User).then(resp => {
+                dispatch(UserSetInfo(resp))
+                navigate(from, { replace: true });
+            }).catch(() => {
+                dispatch(UserClear())
+            })
         })
     };
     return (

@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { getToken, setToken, removeToken } from '../../utils/auth';
 
 const User = createSlice({
     name: 'user',
@@ -13,13 +12,8 @@ const User = createSlice({
         check: 0,
         sex: null,
         image: null,
-        token: getToken(),
     },
     reducers: {
-        UserSetToken: (state, { payload }) => {
-            state.token = payload;
-            setToken(payload);
-        },
         UserSetInfo: (state, { payload }) => {
             state.id = payload.id;
             state.account_id = payload.account_id;
@@ -44,7 +38,6 @@ const User = createSlice({
                 image: null,
                 token: "",
             };
-            removeToken();
         },
     }
 })

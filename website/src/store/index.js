@@ -2,7 +2,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import thunk from 'redux-thunk';
 import User from './reducers/user';
 
-export const { UserSetToken, UserSetInfo, UserClear } = User.actions;
+export const { UserSetInfo, UserClear } = User.actions;
 
 const Store = configureStore({
     reducer: combineReducers({

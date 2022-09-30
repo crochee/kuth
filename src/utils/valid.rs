@@ -59,20 +59,19 @@ where
     async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
         let mut result = Header::default();
         let header = req.headers();
-        if req.uri().path().ne("/v1/accounts") {
-            result.account_id = header
-                .get("X-Account-ID")
-                .ok_or_else(|| Error::Forbidden("miss request header X-Account-ID".to_string()))?
-                .to_str()
-                .unwrap_or_default()
-                .to_string();
-            result.user_id = header
-                .get("X-User-ID")
-                .ok_or_else(|| Error::Forbidden("miss request header X-User-ID".to_string()))?
-                .to_str()
-                .unwrap_or_default()
-                .to_string();
-        }
+        result.account_id = header
+            .get("X-Account-ID")
+            .ok_or_else(|| Error::Forbidden("miss request header X-Account-ID".to_string()))?
+            .to_str()
+            .unwrap_or_default()
+            .to_string();
+        result.user_id = header
+            .get("X-User-ID")
+            .ok_or_else(|| Error::Forbidden("miss request header X-User-ID".to_string()))?
+            .to_str()
+            .unwrap_or_default()
+            .to_string();
+
         if let Some(v) = header.get("X-Source") {
             result.source = v.to_str().unwrap_or_default().to_owned();
         };

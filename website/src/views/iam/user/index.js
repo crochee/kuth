@@ -75,11 +75,12 @@ const Users = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const limit = searchParams.get('limit') || 20;
     const offset = searchParams.get('offset') || 0;
+    const sort = searchParams.get('sort') || 'created_at desc';
     useEffect(() => {
         if (loading) {
             const fetchRecords = () => {
                 setLoading(true);
-                Invoke("/v1/users?limit=" + limit + "&offset=" + offset).then((resp) => {
+                Invoke("/v1/users?limit=" + limit + "&offset=" + offset + "&sort=" + sort).then((resp) => {
                     setRecords((resp.data || []).map((value) => {
                         return {
                             ...value,
@@ -89,30 +90,25 @@ const Users = () => {
                     setSearchParams({
                         limit: resp.limit,
                         offset: resp.offset,
+                        sort: sort,
                     });
                     setSelectedRowKeys([]);
-                    setLoading(false);
-                }).catch(() => { setLoading(false) });
+                });
+                setLoading(false);
             };
             fetchRecords();
         }
-    }, [loading, limit, offset, setSearchParams]);
-
-
+    }, [loading, limit, offset, sort, setSearchParams]);
 
     const rowSelection = {
         selectedRowKeys,
         onChange: (selectedRowKeys) => {
             setSelectedRowKeys(selectedRowKeys);
-            console.log(`selectedRowKeys:`, selectedRowKeys);
         },
         getCheckboxProps: (record) => ({
             disabled: record.admin === "企业管理人员",
             id: record.id,
         }),
-        onSelectNone: () => {
-            console.log("clear")
-        }
     };
 
     return <Layout style={{ padding: '0 12px' }}>
