@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, message } from 'antd';
 import {
     LaptopOutlined, NotificationOutlined, UserOutlined, MenuFoldOutlined,
     MenuUnfoldOutlined,
@@ -8,8 +8,7 @@ import './index.css';
 import UserDropdown from './user';
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from 'react-redux';
-import { GetUser } from "../../apis/kuth/user";
-import { VerifyToken } from "../../apis/kuth/auth";
+import Invoke, { Request } from "../../apis/kuth";
 import { UserSetInfo, UserClear } from "../../store";
 import Search from "./search";
 
@@ -116,7 +115,6 @@ const Home = () => {
 
 export default Home;
 
-
 const CheckAuth = () => {
     const userStore = useSelector((state) => state.user);
     const dispatch = useDispatch();
@@ -127,13 +125,21 @@ const CheckAuth = () => {
             navigate("/login", { state: { from: location }, replace: true });
             return
         }
-        VerifyToken().then(response => {
-            GetUser(response.user_id).then(resp => {
-                dispatch(UserSetInfo(resp))
-            })
+        Request("/v1/auth?action=post&path=/v1/auth", "POST").then((response) => {
+            if (response.status === 200) {
+                response.json().then((resp)=>{
+                    Invoke("/v1/users/" + resp.user_id).then(resp => {
+                        dispatch(UserSetInfo(resp))
+                    })
+                })
+                return
+            }
+            throw new response.json()
+
         }).catch(() => {
             dispatch(UserClear());
             navigate("/login", { state: { from: location }, replace: true });
+            message.error("会话过期,请重新登陆", 5)
         })
     })
     return (<></>)

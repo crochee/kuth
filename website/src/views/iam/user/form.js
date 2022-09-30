@@ -20,7 +20,7 @@ import {
     Input,
 } from 'antd';
 import { useParams, Link } from "react-router-dom";
-import { GetUser, CreateUser } from '../../../apis/kuth/user';
+import Invoke from '../../../apis/kuth';
 import { useState, useEffect } from 'react';
 
 export const User = () => {
@@ -39,7 +39,7 @@ export const User = () => {
     });
     let params = useParams();
     useEffect(() => {
-        GetUser(params.id).then((resp) => {
+        Invoke("/v1/users/" + params.id).then((resp) => {
             setData(resp)
         })
     }, [params.id])
@@ -107,12 +107,13 @@ export const CreateUserDrawer = (props) => {
         }
         setOpen(false);
         form.submit();
-        CreateUser(
-            form.getFieldValue("name"),
-            form.getFieldValue("password"),
-            form.getFieldValue("desc")).then((result) => {
-                console.log(result.id);
-            })
+        Invoke("/v1/users", "POST", 201, {
+            name: form.getFieldValue("name"),
+            password: form.getFieldValue("password"),
+            desc: form.getFieldValue("desc"),
+        }).then((result) => {
+            console.log(result.id);
+        })
         form.resetFields();
     };
     return <Drawer

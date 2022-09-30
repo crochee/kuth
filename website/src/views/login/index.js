@@ -1,7 +1,7 @@
 import React from 'react';
 import './index.css';
 import { Button, Checkbox, Form, Input } from 'antd';
-import { PostTokens } from '../../apis/kuth/auth';
+import { PostTokens } from '../../apis/kuth';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useDispatch } from 'react-redux';
 import { UserSetToken } from "../../store";

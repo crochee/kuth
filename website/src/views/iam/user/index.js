@@ -5,10 +5,10 @@ import {
     Button,
     Space,
 } from "antd";
-import { DownOutlined, PlusOutlined } from '@ant-design/icons';
+import { DownOutlined, PlusOutlined, MinusOutlined } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from "react-router-dom";
-import { GetUsers, DeleteUser } from "../../../apis/kuth/user";
+import Invoke from "../../../apis/kuth";
 import { User, CreateUserDrawer } from "./form";
 
 const columns = [
@@ -49,7 +49,7 @@ const columns = [
         render: (row) => {
             return <Space size="large">
                 <Button type="primary" onClick={() => {
-                    DeleteUser(row.id).then(() => { });
+                    Invoke("/v1/users/" + row.id, 'DELETE', 204).then(() => { });
                 }}>Delete</Button>
                 <Button type="primary">
                     <Space>
@@ -63,33 +63,20 @@ const columns = [
 ];
 
 const Users = () => {
+    const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [open, setOpen] = useState(false);
-    const [batchDeleteUnableState, setBatchDeleteUnableState] = useState(true);
-    //const [selectDeleteData, setSelectDeleteData] = useState([]);
-    const [data, setData] = useState([]);
-    const rowSelection = {
-        onChange: (selectedRowKeys, selectedRows, info) => {
-            if (selectedRows.length === 0) {
-                setBatchDeleteUnableState(true);
-            } else {
-                setBatchDeleteUnableState(false);
-            }
-            // setSelectDeleteData(selectedRows);
-            console.log(`selectedRowKeys:`, selectedRowKeys, "selectedRows:", selectedRows, `info:`, info);
-        },
-        getCheckboxProps: (record) => ({
-            disabled: record.admin === "企业管理人员",
-            id: record.id,
-        }),
-    };
+
+    // 数据拉取
     const [searchParams, setSearchParams] = useSearchParams();
     const limit = searchParams.get('limit') || 20;
     const offset = searchParams.get('offset') || 0;
     useEffect(() => {
+        if (loading) {
+            return
+        }
         setLoading(true);
-        GetUsers(limit, offset).then((resp) => {
-            setData(resp.data.map((value, index) => {
+        Invoke("/v1/users?limit=" + limit + "&offset=" + offset).then((resp) => {
+            setRecords((resp.data || []).map((value, index) => {
                 let admin = "普通角色";
                 if (value.admin === 2) {
                     admin = "企业管理人员"
@@ -106,15 +93,54 @@ const Users = () => {
             })
         })
         setLoading(false);
-    }, [limit, offset, setSearchParams]);
+    }, [loading, limit, offset, setSearchParams]);
+
+    const [open, setOpen] = useState(false);
+
+    const [batchDeleteUnableState, setBatchDeleteUnableState] = useState(true);
+    const [selectDeleteData, setSelectDeleteData] = useState([]);
+
+    const rowSelection = {
+        onChange: (selectedRowKeys, selectedRows, info) => {
+            if (selectedRows.length === 0) {
+                setBatchDeleteUnableState(true);
+            } else {
+                setBatchDeleteUnableState(false);
+            }
+            setSelectDeleteData(selectedRows.map((row) => {
+                return row.id
+            }));
+            console.log(`selectedRowKeys:`, selectedRowKeys, "selectedRows:", selectedRows, `info:`, info);
+        },
+        getCheckboxProps: (record) => ({
+            disabled: record.admin === "企业管理人员",
+            id: record.id,
+        }),
+        onSelectNone: () => {
+            console.log("clear")
+        }
+    };
+
 
     return <Layout style={{ padding: '0 12px' }}>
         <PageHeader
             ghost={true}
             title="用户"
             extra={[
-                <Button key="2" disabled={batchDeleteUnableState}>删除用户</Button>,
-                <Button key="1" type="primary" icon={<PlusOutlined />} onClick={() => { setOpen(true) }}>创建用户</Button>
+                <Button key="2"
+                    disabled={batchDeleteUnableState}
+                    icon={<MinusOutlined />}
+                    onClick={() => {
+                        selectDeleteData.forEach((id) => {
+                            Invoke("/v1/users/" + id, 'DELETE', 204).then(() => { });
+                        });
+                    }}
+                >删除用户</Button>,
+                <Button key="1"
+                    type="primary"
+                    icon={<PlusOutlined />}
+                    onClick={() => { setOpen(true) }}
+                >创建用户</Button>
             ]}
         >
         </PageHeader>
@@ -135,7 +161,7 @@ const Users = () => {
                     position: ["bottomCenter"],
                 }}
                 columns={columns}
-                dataSource={data}
+                dataSource={records}
             />
             <CreateUserDrawer open={open} setOpen={setOpen} />
         </Layout.Content>
