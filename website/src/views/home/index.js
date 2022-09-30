@@ -137,12 +137,19 @@ const CheckAuth = () => {
                 })
                 return
             }
-            throw new response.json()
-
-        }).catch(() => {
+            response.json().then((resp) => {
+                dispatch(UserClear());
+                navigate("/login", { state: { from: location }, replace: true });
+                if (resp.message.startsWith("kuth.404")) {
+                    message.error("会话过期,请重新登陆", 5);
+                    return
+                }
+                message.error(resp.message, 5);
+            })
+        }).catch((content) => {
             dispatch(UserClear());
             navigate("/login", { state: { from: location }, replace: true });
-            message.error("会话过期,请重新登陆", 5)
+            message.error(content, 5)
         })
     })
     return (<></>)

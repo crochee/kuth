@@ -90,6 +90,7 @@ export const CreateUserDrawer = (props) => {
     const {
         open,
         setOpen,
+        setLoading,
     } = props
     const [form] = Form.useForm();
 
@@ -105,7 +106,6 @@ export const CreateUserDrawer = (props) => {
         if (hasError) {
             return
         }
-        setOpen(false);
         form.submit();
         Invoke("/v1/users", "POST", 201, {
             name: form.getFieldValue("name"),
@@ -113,8 +113,10 @@ export const CreateUserDrawer = (props) => {
             desc: form.getFieldValue("desc"),
         }).then((result) => {
             console.log(result.id);
+            setOpen(false);
+            setLoading(true);
+            form.resetFields();
         })
-        form.resetFields();
     };
     return <Drawer
         title="创建用户"

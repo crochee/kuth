@@ -1,6 +1,6 @@
 use chrono::Utc;
 use serde::Deserialize;
-use sqlx::MySqlPool;
+use sqlx::{MySql, MySqlPool, Transaction};
 use validator::Validate;
 
 use crate::{
@@ -37,8 +37,8 @@ pub struct Content {
     pub image: Option<String>,
 }
 
-pub async fn create(pool: &MySqlPool, content: &Content) -> Result<ID> {
-    super::account::exist(pool, &content.account_id).await?;
+pub async fn create(tx: &mut Transaction<'_, MySql>, content: &Content) -> Result<ID> {
+    super::account::exist(tx, &content.account_id).await?;
     let user_id = next_id().map_err(Error::any)?;
     let password = sign_password(&content.password)?;
     sqlx::query!(
@@ -55,7 +55,7 @@ pub async fn create(pool: &MySqlPool, content: &Content) -> Result<ID> {
         content.image,
         password,
     )
-    .execute(pool)
+    .execute(tx)
     .await
     .map_err(Error::any)?;
     Ok(ID {
@@ -317,13 +317,13 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<User>> {
     }
 }
 
-pub async fn exist(pool: &MySqlPool, id: &str) -> Result<()> {
+pub async fn exist(tx: &mut Transaction<'_, MySql>, id: &str) -> Result<()> {
     let result = sqlx::query!(
         r#"SELECT COUNT(*) as count FROM `user`
         WHERE `id` = ? AND `deleted` = 0 LIMIT 1;"#,
         id,
     )
-    .fetch_one(pool)
+    .fetch_one(tx)
     .await
     .map_err(Error::any)?;
     if result.count != 0 {

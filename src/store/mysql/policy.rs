@@ -1,6 +1,6 @@
 use chrono::Utc;
 use serde::Deserialize;
-use sqlx::MySqlPool;
+use sqlx::{MySql, MySqlPool, Transaction};
 use validator::Validate;
 
 use crate::{
@@ -28,7 +28,7 @@ pub struct Content {
     pub collections: Vec<String>,
 }
 
-pub async fn create(pool: MySqlPool, content: &Content) -> Result<ID> {
+pub async fn create(tx: &mut Transaction<'_, MySql>, content: &Content) -> Result<ID> {
     let policy_id = next_id().map_err(Error::any)?;
     let subjects = serde_json::to_string(&content.subjects).map_err(Error::any)?;
     let action = serde_json::to_string(&content.action).map_err(Error::any)?;
@@ -48,12 +48,55 @@ pub async fn create(pool: MySqlPool, content: &Content) -> Result<ID> {
         resources,
         collections,
     )
-    .execute(&pool)
+    .execute(tx)
     .await
     .map_err(Error::any)?;
     Ok(ID {
         id: policy_id.to_string(),
     })
+}
+
+pub async fn insert_or_update(tx: &mut Transaction<'_, MySql>, content: &Content) -> Result<ID> {
+    if let Some(v) = sqlx::query!(
+        r#"SELECT `id` FROM `policy`
+        WHERE `policy_type` = ? AND `version` = ? AND `desc` = ? AND `deleted` = 0 LIMIT 1;"#,
+        content.policy_type,
+        content.version,
+        content.desc,
+    )
+    .fetch_optional(&mut *tx)
+    .await
+    .map_err(Error::any)?
+    {
+        let subjects = serde_json::to_string(&content.subjects).map_err(Error::any)?;
+        let action = serde_json::to_string(&content.action).map_err(Error::any)?;
+        let resources = serde_json::to_string(&content.resources).map_err(Error::any)?;
+        let collections = serde_json::to_string(&content.collections).map_err(Error::any)?;
+        sqlx::query!(
+            r#"UPDATE `policy` SET
+                `subjects` = ?,
+                `effect` = ?,
+                `action` = ?,
+                `resources` = ?,
+                `collections` = ?
+                WHERE `policy_type` = ? AND `version` = ? AND `desc` = ? AND `deleted` = 0;"#,
+            subjects,
+            content.effect,
+            action,
+            resources,
+            collections,
+            content.policy_type,
+            content.version,
+            content.desc,
+        )
+        .execute(tx)
+        .await
+        .map_err(Error::any)?;
+        return Ok(ID {
+            id: v.id.to_string(),
+        });
+    }
+    create(tx, content).await
 }
 
 pub async fn delete(pool: &MySqlPool, id: &str) -> Result<()> {
@@ -104,13 +147,13 @@ pub async fn get(pool: &MySqlPool, id: &str) -> Result<Policy> {
     })
 }
 
-pub async fn exist(pool: &MySqlPool, id: &str) -> Result<()> {
+pub async fn exist(tx: &mut Transaction<'_, MySql>, id: &str) -> Result<()> {
     let result = sqlx::query!(
         r#"SELECT COUNT(*) as count FROM `policy`
         WHERE `id` = ? AND `deleted` = 0 LIMIT 1;"#,
         id,
     )
-    .fetch_one(pool)
+    .fetch_one(tx)
     .await
     .map_err(Error::any)?;
     if result.count != 0 {

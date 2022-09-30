@@ -23,11 +23,12 @@ const Invoke = (url, method = 'GET', code = 200, data = null) => {
             message.error(error)
         })
     })
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         f.then(resolve).catch(
             (result) => {
                 result.then((content) => {
                     message.warn(content.message, 5)
+                    reject(content);
                 })
             }
         )

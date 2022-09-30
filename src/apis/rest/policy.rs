@@ -15,14 +15,16 @@ use crate::{
     service,
     store::mysql::policy,
     utils::valid::Valid,
-    Result,
+    Error, Result,
 };
 
 pub async fn create(
     Valid(content): Valid<Json<policy::Content>>,
     Extension(pool): Extension<MySqlPool>,
 ) -> Result<(StatusCode, Json<ID>)> {
-    let resp = policy::create(pool, &content).await?;
+    let mut tx = pool.begin().await.map_err(Error::any)?;
+    let resp = policy::create(&mut tx, &content).await?;
+    tx.commit().await.map_err(Error::any)?;
     Ok((StatusCode::CREATED, resp.into()))
 }
 

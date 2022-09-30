@@ -6,7 +6,7 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use http::HeaderValue;
+use http::{HeaderValue, Method};
 use sqlx::MySqlPool;
 use tower::{Layer, Service};
 
@@ -48,7 +48,7 @@ where
 }
 
 pub async fn check_headers<B>(mut req: Request<B>, next: Next<B>) -> Response {
-    if req.uri().path().ne("/v1/accounts") {
+    if req.uri().path().ne("/v1/accounts") && req.method().ne(&Method::POST) {
         // 获取token
         let value = match req
             .headers()

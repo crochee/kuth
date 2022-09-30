@@ -15,7 +15,7 @@ use crate::{
     service,
     store::mysql::group,
     utils::valid::{Header, Valid},
-    Result,
+    Error, Result,
 };
 
 pub async fn create(
@@ -24,7 +24,9 @@ pub async fn create(
     Extension(pool): Extension<MySqlPool>,
 ) -> Result<(StatusCode, Json<ID>)> {
     content.account_id = info.account_id;
-    let resp = group::create(pool, &content).await?;
+    let mut tx = pool.begin().await.map_err(Error::any)?;
+    let resp = group::create(&mut tx, &content).await?;
+    tx.commit().await.map_err(Error::any)?;
     Ok((StatusCode::CREATED, resp.into()))
 }
 

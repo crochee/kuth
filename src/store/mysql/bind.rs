@@ -1,6 +1,6 @@
 use chrono::Utc;
 use serde::Deserialize;
-use sqlx::{MySqlPool, Row};
+use sqlx::{MySql, MySqlPool, Row, Transaction};
 use validator::Validate;
 
 use crate::{
@@ -19,14 +19,14 @@ pub struct Content {
     pub object_id: String,
 }
 
-pub async fn create(pool: MySqlPool, content: &Content) -> Result<ID> {
-    super::group::exist(&pool, &content.group_id).await?;
+pub async fn create(tx: &mut Transaction<'_, MySql>, content: &Content) -> Result<ID> {
+    super::group::exist(tx, &content.group_id).await?;
     match content.bind_type {
         1 => {
-            super::user::exist(&pool, &content.object_id).await?;
+            super::user::exist(tx, &content.object_id).await?;
         }
         2 => {
-            super::policy::exist(&pool, &content.object_id).await?;
+            super::policy::exist(tx, &content.object_id).await?;
         }
         _ => {
             return Err(Error::BadRequest(format!(
@@ -45,7 +45,7 @@ pub async fn create(pool: MySqlPool, content: &Content) -> Result<ID> {
         content.bind_type,
         content.object_id,
     )
-    .execute(&pool)
+    .execute(tx)
     .await
     .map_err(Error::any)?;
     Ok(ID {

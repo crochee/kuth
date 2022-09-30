@@ -15,7 +15,7 @@ use crate::{
     service,
     store::mysql::user,
     utils::valid::{Header, Valid},
-    Result,
+    Error, Result,
 };
 
 pub async fn create(
@@ -25,7 +25,9 @@ pub async fn create(
 ) -> Result<(StatusCode, Json<ID>)> {
     content.account_id = info.account_id;
     content.admin = 1;
-    let resp = user::create(&pool, &content).await?;
+    let mut tx = pool.begin().await.map_err(Error::any)?;
+    let resp = user::create(&mut tx, &content).await?;
+    tx.commit().await.map_err(Error::any)?;
     Ok((StatusCode::CREATED, resp.into()))
 }
 

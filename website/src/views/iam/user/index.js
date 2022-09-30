@@ -48,9 +48,13 @@ const columns = [
         key: 'action',
         render: (row) => {
             return <Space size="large">
-                <Button type="primary" onClick={() => {
-                    Invoke("/v1/users/" + row.id, 'DELETE', 204).then(() => { });
-                }}>Delete</Button>
+                <Button
+                    type="primary"
+                    onClick={() => {
+                        Invoke("/v1/users/" + row.id, 'DELETE', 204).then(() => { });
+                    }}
+                    disabled={row.admin === "企业管理人员"}
+                >Delete</Button>
                 <Button type="primary">
                     <Space>
                         More actions
@@ -65,52 +69,42 @@ const columns = [
 const Users = () => {
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
-
+    const [open, setOpen] = useState(false);
+    const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     // 数据拉取
     const [searchParams, setSearchParams] = useSearchParams();
     const limit = searchParams.get('limit') || 20;
     const offset = searchParams.get('offset') || 0;
     useEffect(() => {
-        if (!loading) {
-            return
+        if (loading) {
+            const fetchRecords = () => {
+                setLoading(true);
+                Invoke("/v1/users?limit=" + limit + "&offset=" + offset).then((resp) => {
+                    setRecords((resp.data || []).map((value) => {
+                        return {
+                            ...value,
+                            admin: value.admin === 2 ? "企业管理人员" : "普通角色",
+                        }
+                    }));
+                    setSearchParams({
+                        limit: resp.limit,
+                        offset: resp.offset,
+                    });
+                    setSelectedRowKeys([]);
+                    setLoading(false);
+                }).catch(() => { setLoading(false) });
+            };
+            fetchRecords();
         }
-        setLoading(true);
-        Invoke("/v1/users?limit=" + limit + "&offset=" + offset).then((resp) => {
-            setRecords((resp.data || []).map((value, index) => {
-                let admin = "普通角色";
-                if (value.admin === 2) {
-                    admin = "企业管理人员"
-                }
-                return {
-                    key: index,
-                    ...value,
-                    admin,
-                }
-            }));
-            setSearchParams({
-                limit: resp.limit,
-                offset: resp.offset,
-            })
-        })
-        setLoading(false);
     }, [loading, limit, offset, setSearchParams]);
 
-    const [open, setOpen] = useState(false);
 
-    const [batchDeleteUnableState, setBatchDeleteUnableState] = useState(true);
-    const [selectDeleteData, setSelectDeleteData] = useState([]);
 
     const rowSelection = {
-        onChange: (selectedRowKeys, selectedRows, info) => {
-            if (selectedRows.length === 0) {
-                setBatchDeleteUnableState(true);
-            } else {
-                setBatchDeleteUnableState(false);
-            }
-            setSelectDeleteData(selectedRows.map((row) => {
-                return row.id
-            }));
-            console.log(`selectedRowKeys:`, selectedRowKeys, "selectedRows:", selectedRows, `info:`, info);
+        selectedRowKeys,
+        onChange: (selectedRowKeys) => {
+            setSelectedRowKeys(selectedRowKeys);
+            console.log(`selectedRowKeys:`, selectedRowKeys);
         },
         getCheckboxProps: (record) => ({
             disabled: record.admin === "企业管理人员",
@@ -121,19 +115,21 @@ const Users = () => {
         }
     };
 
-
     return <Layout style={{ padding: '0 12px' }}>
         <PageHeader
             ghost={true}
             title="用户"
             extra={[
                 <Button key="2"
-                    disabled={batchDeleteUnableState}
+                    disabled={(selectedRowKeys.length === 0)}
                     icon={<MinusOutlined />}
                     onClick={() => {
-                        selectDeleteData.forEach((id) => {
+                        selectedRowKeys.forEach((id) => {
                             Invoke("/v1/users/" + id, 'DELETE', 204).then(() => { });
                         });
+                        setTimeout(() => {
+                            setLoading(true);
+                        }, 200);
                     }}
                 >删除用户</Button>,
                 <Button key="1"
@@ -160,10 +156,11 @@ const Users = () => {
                 pagination={{
                     position: ["bottomCenter"],
                 }}
+                rowKey={"id"}
                 columns={columns}
                 dataSource={records}
             />
-            <CreateUserDrawer open={open} setOpen={setOpen} />
+            <CreateUserDrawer open={open} setOpen={setOpen} setLoading={setLoading} />
         </Layout.Content>
     </Layout>
 }

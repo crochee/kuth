@@ -1,6 +1,6 @@
 use chrono::Utc;
 use serde::Deserialize;
-use sqlx::MySqlPool;
+use sqlx::{MySql, MySqlPool, Transaction};
 use validator::Validate;
 
 use crate::{
@@ -19,8 +19,8 @@ pub struct Content {
     pub desc: String,
 }
 
-pub async fn create(pool: MySqlPool, content: &Content) -> Result<ID> {
-    super::account::exist(&pool, &content.account_id).await?;
+pub async fn create(tx: &mut Transaction<'_, MySql>, content: &Content) -> Result<ID> {
+    super::account::exist(tx, &content.account_id).await?;
     let group_id = next_id().map_err(Error::any)?;
     sqlx::query!(
         r#"INSERT INTO `group`
@@ -31,7 +31,7 @@ pub async fn create(pool: MySqlPool, content: &Content) -> Result<ID> {
         content.desc,
         content.account_id,
     )
-    .execute(&pool)
+    .execute(tx)
     .await
     .map_err(Error::any)?;
     Ok(ID {
@@ -200,13 +200,13 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Group>> {
     }
 }
 
-pub async fn exist(pool: &MySqlPool, id: &str) -> Result<()> {
+pub async fn exist(tx: &mut Transaction<'_, MySql>, id: &str) -> Result<()> {
     let result = sqlx::query!(
         r#"SELECT COUNT(*) as count FROM `group`
         WHERE `id` = ? AND `deleted` = 0 LIMIT 1;"#,
         id,
     )
-    .fetch_one(pool)
+    .fetch_one(tx)
     .await
     .map_err(Error::any)?;
     if result.count != 0 {

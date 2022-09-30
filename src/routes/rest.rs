@@ -28,7 +28,6 @@ pub fn api_rest_router(pool: MySqlPool) -> Router {
     Router::new()
         // 系统接口
         .merge(route_v1())
-        .layer(middleware::from_fn(check_headers))
         // 认证接口
         .merge(authz_api())
         .layer(Extension(pool))
@@ -72,6 +71,7 @@ fn apis() -> Router {
         .merge(user_api())
         .merge(secret_api())
         .merge(group_api())
+        .layer(middleware::from_fn(check_headers))
         .merge(bind_api())
         .merge(policy_api())
 }

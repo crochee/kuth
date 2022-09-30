@@ -20,7 +20,8 @@ pub struct Content {
 }
 
 pub async fn create(pool: MySqlPool, content: &Content) -> Result<ID> {
-    super::user::exist(&pool, &content.user_id).await?;
+    let mut tx = pool.begin().await.map_err(Error::any)?;
+    super::user::exist(&mut tx, &content.user_id).await?;
     let secret_id = next_id().map_err(Error::any)?;
     let ak = rand::thread_rng()
         .sample_iter(&rand::distributions::Alphanumeric)
