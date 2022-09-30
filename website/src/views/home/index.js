@@ -125,9 +125,12 @@ const CheckAuth = () => {
             navigate("/login", { state: { from: location }, replace: true });
             return
         }
+        if (userStore.id) {
+            return
+        }
         Request("/v1/auth?action=post&path=/v1/auth", "POST").then((response) => {
             if (response.status === 200) {
-                response.json().then((resp)=>{
+                response.json().then((resp) => {
                     Invoke("/v1/users/" + resp.user_id).then(resp => {
                         dispatch(UserSetInfo(resp))
                     })

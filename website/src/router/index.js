@@ -9,7 +9,9 @@ const Router = () => {
     return <BrowserRouter>
         <Routes>
             <Route exact path="/login" element={<Login />} />
+            <Route path="/" element={<Navigate to="/home" />} />
             <Route path="/" element={<Home />}>
+                <Route path="home" element={<div>Welcome</div>} />
                 <Route path="expenses" element={<div>expenses</div>} />
                 <Route path="invoices" element={<div>invoices</div>} />
                 <Route path="iam" element={<Navigate to="/iam/users" />} />

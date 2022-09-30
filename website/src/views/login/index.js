@@ -10,7 +10,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 const Login = () => {
     const dispatch = useDispatch();
     let location = useLocation();
-    let from = location.state?.from?.pathname || "/";
+    let from = location.state?.from?.pathname || "/home";
     const navigate = useNavigate();
     const onFinish = (values) => {
         PostTokens(values.username, values.password).then((response) => {

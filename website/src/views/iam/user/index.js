@@ -64,14 +64,14 @@ const columns = [
 
 const Users = () => {
     const [records, setRecords] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     // 数据拉取
     const [searchParams, setSearchParams] = useSearchParams();
     const limit = searchParams.get('limit') || 20;
     const offset = searchParams.get('offset') || 0;
     useEffect(() => {
-        if (loading) {
+        if (!loading) {
             return
         }
         setLoading(true);
