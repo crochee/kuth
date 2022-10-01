@@ -1,28 +1,27 @@
 import { Layout, Menu } from 'antd';
-import React, { useState } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, Link, useLocation } from "react-router-dom";
 
-const iamItems = [
+const items = [
     {
-        key: '1',
+        key: '/iam/users',
         label: (
             <Link to="/iam/users">用户</Link>
         ),
     },
     {
-        key: '2',
+        key: '/iam/groups',
         label: (
             <Link to="/iam/groups">用户组</Link>
         ),
     },
     {
-        key: '3',
+        key: '/iam/secrets',
         label: (
             <Link to="/iam/secrets">密钥</Link>
         ),
     },
     {
-        key: '4',
+        key: '/iam/policys',
         label: (
             <Link to="/iam/policys">策略</Link>
         )
@@ -30,13 +29,14 @@ const iamItems = [
 ];
 
 const Iam = () => {
+    let pathname = [useLocation().pathname];
     return <Layout>
         <Layout.Sider className="layout-sider">
             <p >身份识别与访问管理</p>
             <Menu
-                selectable
-                defaultSelectedKeys={['1']}
-                items={iamItems}
+                selectable={true}
+                defaultSelectedKeys={pathname}
+                items={items}
             />
         </Layout.Sider>
         <Outlet />

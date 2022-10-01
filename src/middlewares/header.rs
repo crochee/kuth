@@ -6,7 +6,7 @@ use axum::{
     middleware::Next,
     response::{IntoResponse, Response},
 };
-use http::{HeaderValue, Method};
+use http::{header, HeaderValue, Method};
 use sqlx::MySqlPool;
 use tower::{Layer, Service};
 
@@ -61,8 +61,13 @@ pub async fn check_headers<B>(mut req: Request<B>, next: Next<B>) -> Response {
         Ok(v) => match v {
             Some(v) => v,
             None => {
-                return Error::Forbidden("miss request header Authorization".to_string())
-                    .into_response()
+                let mut resp = Error::Unauthorized("miss request header Authorization".to_string())
+                    .into_response();
+                resp.headers_mut().insert(
+                    header::WWW_AUTHENTICATE,
+                    HeaderValue::from_static("Bearer realm=Authorization Required"),
+                );
+                return resp;
             }
         },
         Err(err) => return err.into_response(),

@@ -7,6 +7,7 @@ const Invoke = (url, method = 'GET', code = 200, data = null) => {
     const f = new Promise((resolve, reject) => {
         Request(url, method, code, data).then((response) => {
             if (response.status === 204) {
+                resolve()
                 return
             }
             if (response.status !== code) {
@@ -64,7 +65,8 @@ export const Request = (url, method = 'GET', code = 200, data = null) => {
         fetch(KuthUrl + url, options).then((response) => {
             if (response.status === 403) {
                 response.json().then((resp) => {
-                    message.error(resp.message, 30, removeToken);
+                    removeToken();
+                    message.error(resp.message, 5);
                 })
                 return
             }

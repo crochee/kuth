@@ -4,6 +4,7 @@ import Login from "../views/login";
 import NotFound from "../views/notfound";
 import Iam from "../views/iam";
 import Users, { User } from "../views/iam/user";
+import Groups, { Group } from "../views/iam/group";
 
 const Router = () => {
     return <BrowserRouter>
@@ -18,7 +19,8 @@ const Router = () => {
                 <Route path="iam" element={<Iam />}>
                     <Route path="users" element={<Users />} />
                     <Route path="users/:id" element={<User />} />
-                    <Route path="groups" element={<div>groups</div>} />
+                    <Route path="groups" element={<Groups />} />
+                    <Route path="groups/:id" element={<Group />} />
                     <Route path="secrets" element={<div>secrets</div>} />
                     <Route path="policys" element={<div>policys</div>} />
                 </Route>
