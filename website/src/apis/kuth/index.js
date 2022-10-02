@@ -7,14 +7,18 @@ const Invoke = (url, method = 'GET', code = 200, data = null) => {
     const f = new Promise((resolve, reject) => {
         Request(url, method, code, data).then((response) => {
             if (response.status === 204) {
-                resolve()
-                return
-            }
-            if (response.status !== code) {
-                reject(response.json())
+                resolve();
                 return
             }
             let contentType = response.headers.get("Content-Type");
+            if (response.status !== code) {
+                if (contentType.startsWith("application/json")) {
+                    reject(response.json());
+                    return
+                }
+                reject({ message: response.status });
+                return
+            }
             if (contentType.startsWith("application/json")) {
                 resolve(response.json())
                 return

@@ -81,6 +81,7 @@ pub struct Group {
 #[derive(Debug, Clone, Serialize)]
 pub struct Policy {
     pub id: String,
+    pub name: String,
     pub desc: String,
     pub version: String,
     pub policy_type: u8,

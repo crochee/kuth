@@ -49,7 +49,7 @@ where
 
 pub async fn check_headers<B>(mut req: Request<B>, next: Next<B>) -> Response {
     // 创建账户白名单
-    if req.uri().path().eq("/v1/accounts") && req.method().eq(&Method::POST) {
+    if req.uri().path().eq("/accounts") && req.method().eq(&Method::POST) {
         return next.run(req).await;
     }
     // 获取token

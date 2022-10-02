@@ -118,10 +118,11 @@ fn group_api() -> Router {
 // 策略操作
 fn policy_api() -> Router {
     Router::new()
-        .route("/policys", post(policy::create))
-        .route("/policys/:id", delete(policy::delete))
-        .route("/policys/:id", get(policy::get))
-        .route("/policys", get(policy::list))
+        .route("/policies", post(policy::create))
+        .route("/policies/:id", delete(policy::delete))
+        .route("/policies/:id", patch(policy::update))
+        .route("/policies/:id", get(policy::get))
+        .route("/policies", get(policy::list))
 }
 
 // 用户组绑定和解绑用户

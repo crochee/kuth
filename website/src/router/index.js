@@ -3,8 +3,10 @@ import Home from "../views/home";
 import Login from "../views/login";
 import NotFound from "../views/notfound";
 import Iam from "../views/iam";
-import Users, { User } from "../views/iam/user";
-import Groups, { Group } from "../views/iam/group";
+import Users, { User } from "../views/iam/users";
+import Groups, { Group } from "../views/iam/groups";
+import Secrets, { Secret } from "../views/iam/secrets";
+import Policies, { Policy } from "../views/iam/policies";
 
 const Router = () => {
     return <BrowserRouter>
@@ -21,8 +23,10 @@ const Router = () => {
                     <Route path="users/:id" element={<User />} />
                     <Route path="groups" element={<Groups />} />
                     <Route path="groups/:id" element={<Group />} />
-                    <Route path="secrets" element={<div>secrets</div>} />
-                    <Route path="policys" element={<div>policys</div>} />
+                    <Route path="secrets" element={<Secrets />} />
+                    <Route path="secrets/:id" element={<Secret />} />
+                    <Route path="policies" element={<Policies />} />
+                    <Route path="policies/:id" element={<Policy />} />
                 </Route>
                 <Route path="about" element={<div>about</div>} />
             </Route>

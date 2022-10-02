@@ -36,6 +36,15 @@ pub async fn delete(
     Ok(StatusCode::NO_CONTENT)
 }
 
+pub async fn update(
+    Path(id): Path<String>,
+    Valid(content): Valid<Json<policy::Opts>>,
+    Extension(pool): Extension<MySqlPool>,
+) -> Result<StatusCode> {
+    policy::update(&pool, &id, &content).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
 pub async fn get(
     Path(id): Path<String>,
     Extension(pool): Extension<MySqlPool>,

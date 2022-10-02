@@ -14,7 +14,7 @@ use crate::{
     },
     store::mysql::secret,
     utils::valid::{Header, Valid},
-    Result,
+    Error, Result,
 };
 
 pub async fn create(
@@ -23,7 +23,9 @@ pub async fn create(
     Extension(pool): Extension<MySqlPool>,
 ) -> Result<(StatusCode, Json<ID>)> {
     content.user_id = info.user_id;
-    let resp = secret::create(pool, &content).await?;
+    let mut tx = pool.begin().await.map_err(Error::any)?;
+    let resp = secret::create(&mut tx, &content).await?;
+    tx.commit().await.map_err(Error::any)?;
     Ok((StatusCode::CREATED, resp.into()))
 }
 
@@ -32,7 +34,7 @@ pub async fn delete(
     Path(id): Path<String>,
     Extension(pool): Extension<MySqlPool>,
 ) -> Result<StatusCode> {
-    secret::delete(pool, &id, &info.user_id).await?;
+    secret::delete(&pool, &id, &info.user_id).await?;
     Ok(StatusCode::NO_CONTENT)
 }
 
@@ -77,7 +79,7 @@ pub async fn list(
     let (limit, offset) = transform_pagination(filter.limit, filter.offset);
     let sort = transform_sort(&filter.sort);
     let resp = secret::list(
-        pool,
+        &pool,
         &secret::ListOpts {
             user_id: Some(info.user_id),
             limit,

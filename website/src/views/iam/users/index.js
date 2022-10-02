@@ -6,15 +6,20 @@ import {
     Space,
     Popover,
 } from "antd";
-import { DownOutlined, PlusOutlined, MinusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import {
+    DownOutlined,
+    PlusOutlined,
+    MinusOutlined,
+    QuestionCircleOutlined,
+} from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from "react-router-dom";
 import Invoke from "../../../apis/kuth";
-import Group from "./item";
-import CreateGroupDrawer from "./create";
+import User from "./item";
+import CreateUserDrawer from "./create";
 
 
-const Groups = () => {
+const Users = () => {
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [open, setOpen] = useState(false);
@@ -28,7 +33,7 @@ const Groups = () => {
         if (loading) {
             const fetchRecords = () => {
                 setLoading(true);
-                Invoke("/v1/groups?limit=" + limit + "&offset=" + offset + "&sort=" + sort).then((resp) => {
+                Invoke("/v1/users?limit=" + limit + "&offset=" + offset + "&sort=" + sort).then((resp) => {
                     setRecords((resp.data || []).map((value) => {
                         return {
                             ...value,
@@ -50,17 +55,21 @@ const Groups = () => {
 
     const columns = [
         {
-            title: '用户组ID',
+            title: '用户ID',
             dataIndex: 'id',
             render: (text) => {
                 return <Space size="large">
-                    <Link to={`/iam/groups/${text}`}>{text}</Link>
+                    <Link to={`/iam/users/${text}`}>{text}</Link>
                 </Space>
             },
         },
         {
-            title: '用户组名',
+            title: '用户名',
             dataIndex: 'name',
+        },
+        {
+            title: '类型',
+            dataIndex: 'admin',
         },
         {
             title: '描述',
@@ -90,11 +99,11 @@ const Groups = () => {
                     <Button
                         type="primary"
                         onClick={() => {
-                            Invoke("/v1/groups/" + row.id, 'DELETE', 204).then(() => {
+                            Invoke("/v1/users/" + row.id, 'DELETE', 204).then(() => {
                                 setLoading(true);
                             });
                         }}
-                        disabled={row.name === "Administrator"}
+                        disabled={row.admin === "企业管理人员"}
                     >Delete</Button>
                     <Button type="primary">
                         <Space>
@@ -117,7 +126,7 @@ const Groups = () => {
             setSelectedRowKeys(selectedRowKeys);
         },
         getCheckboxProps: (record) => ({
-            disabled: record.name === "Administrator",
+            disabled: record.admin === "企业管理人员",
             id: record.id,
         }),
     };
@@ -126,13 +135,8 @@ const Groups = () => {
         <PageHeader
             title={
                 <>
-                    <span class="ant-page-header-heading-title">用户组</span>
-                    <Popover
-                        placement="right"
-                        content={<>
-                            用户组是具有相同权限的用户的集合。通过用户组，可以<br />把相同权限的用户集中管理，提高权限管理的效率
-                        </>}
-                    >
+                    <span className="ant-page-header-heading-title">用户</span>
+                    <Popover placement="right" content="用户表示可以使用资源的企业内雇员" >
                         <Button type="text" icon={<QuestionCircleOutlined />} />
                     </Popover>
                 </>
@@ -143,21 +147,20 @@ const Groups = () => {
                     icon={<MinusOutlined />}
                     onClick={() => {
                         selectedRowKeys.forEach((id) => {
-                            Invoke("/v1/groups/" + id, 'DELETE', 204).then(() => { });
+                            Invoke("/v1/users/" + id, 'DELETE', 204).then(() => { });
                         });
                         setTimeout(() => {
                             setLoading(true);
                         }, 200);
                     }}
-                >删除用户组</Button>,
+                >删除用户</Button>,
                 <Button key="1"
                     type="primary"
                     icon={<PlusOutlined />}
                     onClick={() => { setOpen(true) }}
-                >创建用户组</Button>
+                >创建用户</Button>
             ]}
-        >
-        </PageHeader>
+        />
         <Layout.Content
             className="layout-background"
             style={{
@@ -179,11 +182,12 @@ const Groups = () => {
                 dataSource={records}
                 onChange={onChange}
             />
-            <CreateGroupDrawer open={open} setOpen={setOpen} setLoading={setLoading} />
+            <CreateUserDrawer open={open} setOpen={setOpen} setLoading={setLoading} />
         </Layout.Content>
     </Layout>
 }
 
 
-export default Groups;
-export { Group };
+
+export default Users;
+export { User };

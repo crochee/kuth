@@ -15,6 +15,8 @@ use crate::{
 #[derive(Debug, Deserialize, Validate)]
 pub struct Content {
     #[validate(length(min = 1))]
+    pub name: String,
+    #[validate(length(min = 1))]
     pub desc: String,
     #[validate(length(min = 1))]
     pub version: String,
@@ -36,9 +38,10 @@ pub async fn create(tx: &mut Transaction<'_, MySql>, content: &Content) -> Resul
     let collections = serde_json::to_string(&content.collections).map_err(Error::any)?;
     sqlx::query!(
         r#"INSERT INTO `policy`
-        (`id`,`desc`,`version`,`policy_type`,`subjects`,`effect`,`action`,`resources`,`collections`)
-        VALUES(?,?,?,?,?,?,?,?,?);"#,
+        (`id`,`name`,`desc`,`version`,`policy_type`,`subjects`,`effect`,`action`,`resources`,`collections`)
+        VALUES(?,?,?,?,?,?,?,?,?,?);"#,
         policy_id,
+        content.name,
         content.desc,
         content.version,
         content.policy_type,
@@ -74,12 +77,14 @@ pub async fn insert_or_update(tx: &mut Transaction<'_, MySql>, content: &Content
         let collections = serde_json::to_string(&content.collections).map_err(Error::any)?;
         sqlx::query!(
             r#"UPDATE `policy` SET
+                `name` = ?,
                 `subjects` = ?,
                 `effect` = ?,
                 `action` = ?,
                 `resources` = ?,
                 `collections` = ?
                 WHERE `policy_type` = ? AND `version` = ? AND `desc` = ? AND `deleted` = 0;"#,
+            content.name,
             subjects,
             content.effect,
             action,
@@ -112,9 +117,89 @@ pub async fn delete(pool: &MySqlPool, id: &str) -> Result<()> {
     Ok(())
 }
 
+#[derive(Debug, Deserialize, Validate)]
+pub struct Opts {
+    #[validate(length(min = 1))]
+    pub name: Option<String>,
+    #[validate(length(min = 1))]
+    pub desc: Option<String>,
+    #[validate(length(min = 1))]
+    pub version: Option<String>,
+    pub subjects: Option<Vec<String>>,
+    #[validate(custom = "check_effect")]
+    pub effect: Option<String>,
+    pub action: Option<Vec<String>>,
+    pub resources: Option<Vec<String>>,
+    pub collections: Option<Vec<String>>,
+}
+
+pub async fn update(pool: &MySqlPool, id: &str, opts: &Opts) -> Result<()> {
+    let mut update_content = String::from("");
+    if let Some(name) = &opts.name {
+        update_content.push_str(format!(r#"`name` = '{}'"#, name).as_str());
+    };
+    if let Some(desc) = &opts.desc {
+        if !update_content.is_empty() {
+            update_content.push_str(" , ");
+        }
+        update_content.push_str(format!(r#"`desc` = '{}'"#, desc).as_str());
+    };
+    if let Some(version) = &opts.version {
+        if !update_content.is_empty() {
+            update_content.push_str(" , ");
+        }
+        update_content.push_str(format!(r#"`version` = '{}'"#, version).as_str());
+    };
+    if let Some(subjects) = &opts.subjects {
+        let content = serde_json::to_string(subjects).map_err(Error::any)?;
+        if !update_content.is_empty() {
+            update_content.push_str(" , ");
+        }
+        update_content.push_str(format!(r#"`subjects` = '{}'"#, content).as_str());
+    };
+    if let Some(action) = &opts.action {
+        let content = serde_json::to_string(action).map_err(Error::any)?;
+        if !update_content.is_empty() {
+            update_content.push_str(" , ");
+        }
+        update_content.push_str(format!(r#"`action` = '{}'"#, content).as_str());
+    };
+    if let Some(resources) = &opts.resources {
+        let content = serde_json::to_string(resources).map_err(Error::any)?;
+        if !update_content.is_empty() {
+            update_content.push_str(" , ");
+        }
+        update_content.push_str(format!(r#"`resources` = '{}'"#, content).as_str());
+    };
+    if let Some(collections) = &opts.collections {
+        let content = serde_json::to_string(collections).map_err(Error::any)?;
+        if !update_content.is_empty() {
+            update_content.push_str(" , ");
+        }
+        update_content.push_str(format!(r#"`collections` = '{}'"#, content).as_str());
+    }
+
+    if update_content.is_empty() {
+        return Ok(());
+    }
+    sqlx::query(
+        format!(
+            r#"UPDATE `policy` SET {}
+                WHERE `id` = ? AND `deleted` = 0;"#,
+            update_content
+        )
+        .as_str(),
+    )
+    .bind(id)
+    .execute(pool)
+    .await
+    .map_err(Error::any)?;
+    Ok(())
+}
+
 pub async fn get(pool: &MySqlPool, id: &str) -> Result<Policy> {
     let row=match sqlx::query!(
-        r#"SELECT `id`,`desc`,`version`,`policy_type`,`subjects`,`effect`,`action`,`resources`,`collections`,`created_at`,`updated_at`
+        r#"SELECT `id`,`name`,`desc`,`version`,`policy_type`,`subjects`,`effect`,`action`,`resources`,`collections`,`created_at`,`updated_at`
         FROM `policy`
         WHERE `id` = ? AND `deleted` = 0;"#,
         id,
@@ -134,6 +219,7 @@ pub async fn get(pool: &MySqlPool, id: &str) -> Result<Policy> {
     let collections: Vec<String> = serde_json::from_str(&row.collections).map_err(Error::any)?;
     Ok(Policy {
         id: row.id.to_string(),
+        name: row.name,
         desc: row.desc,
         version: row.version,
         policy_type: row.policy_type,
@@ -184,7 +270,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Policy>> {
                 .await
                 .map_err(Error::any)?;
                 let rows=sqlx::query!(
-                    r#"SELECT `id`,`desc`,`version`,`policy_type`,`subjects`,`effect`,`action`,`resources`,`collections`,`created_at`,`updated_at`
+                    r#"SELECT `id`,`name`,`desc`,`version`,`policy_type`,`subjects`,`effect`,`action`,`resources`,`collections`,`created_at`,`updated_at`
                     FROM `policy`
                     WHERE `version` = ? AND `policy_type` = ? AND `deleted` = 0 ORDER BY ? LIMIT ? OFFSET ?;"#,
                     version,
@@ -213,6 +299,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Policy>> {
                         serde_json::from_str(&row.collections).map_err(Error::any)?;
                     result.data.push(Policy {
                         id: row.id.to_string(),
+                        name: row.name.clone(),
                         desc: row.desc.clone(),
                         version: row.version.clone(),
                         policy_type: row.policy_type,
@@ -237,7 +324,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Policy>> {
                 .await
                 .map_err(Error::any)?;
                 let rows=sqlx::query!(
-                    r#"SELECT `id`,`desc`,`version`,`policy_type`,`subjects`,`effect`,`action`,`resources`,`collections`,`created_at`,`updated_at`
+                    r#"SELECT `id`,`name`,`desc`,`version`,`policy_type`,`subjects`,`effect`,`action`,`resources`,`collections`,`created_at`,`updated_at`
                     FROM `policy`
                     WHERE `version` = ? AND `deleted` = 0 ORDER BY ? LIMIT ? OFFSET ?;"#,
                     version,
@@ -265,6 +352,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Policy>> {
                         serde_json::from_str(&row.collections).map_err(Error::any)?;
                     result.data.push(Policy {
                         id: row.id.to_string(),
+                        name: row.name.clone(),
                         desc: row.desc.clone(),
                         version: row.version.clone(),
                         policy_type: row.policy_type,
@@ -291,7 +379,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Policy>> {
                 .await
                 .map_err(Error::any)?;
                 let rows=sqlx::query!(
-                    r#"SELECT `id`,`desc`,`version`,`policy_type`,`subjects`,`effect`,`action`,`resources`,`collections`,`created_at`,`updated_at`
+                    r#"SELECT `id`,`name`,`desc`,`version`,`policy_type`,`subjects`,`effect`,`action`,`resources`,`collections`,`created_at`,`updated_at`
                     FROM `policy`
                     WHERE `policy_type` = ? AND `deleted` = 0 ORDER BY ? LIMIT ? OFFSET ?;"#,
                     policy_type,
@@ -319,6 +407,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Policy>> {
                         serde_json::from_str(&row.collections).map_err(Error::any)?;
                     result.data.push(Policy {
                         id: row.id.to_string(),
+                        name: row.name.clone(),
                         desc: row.desc.clone(),
                         version: row.version.clone(),
                         policy_type: row.policy_type,
@@ -342,7 +431,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Policy>> {
                 .await
                 .map_err(Error::any)?;
                 let rows=sqlx::query!(
-                    r#"SELECT `id`,`desc`,`version`,`policy_type`,`subjects`,`effect`,`action`,`resources`,`collections`,`created_at`,`updated_at`
+                    r#"SELECT `id`,`name`,`desc`,`version`,`policy_type`,`subjects`,`effect`,`action`,`resources`,`collections`,`created_at`,`updated_at`
                     FROM `policy`
                     WHERE `deleted` = 0 ORDER BY ? LIMIT ? OFFSET ?;"#,
                     opts.sort,
@@ -369,6 +458,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Policy>> {
                         serde_json::from_str(&row.collections).map_err(Error::any)?;
                     result.data.push(Policy {
                         id: row.id.to_string(),
+                        name: row.name.clone(),
                         desc: row.desc.clone(),
                         version: row.version.clone(),
                         policy_type: row.policy_type,

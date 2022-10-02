@@ -1,0 +1,29 @@
+.kuth-json-editor {
+    width: 100%;
+}
+
+.ace-jsoneditor {
+    font-size: 12px !important;
+    min-height: 300px;
+}
+
+.jsoneditor-menu {
+    display: none;
+}
+
+.jsoneditor-navigation-bar {
+    display: none;
+}
+
+.jsoneditor-outer.has-nav-bar.has-main-menu-bar {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.ace-jsoneditor .ace_variable {
+    color: red;
+}
+
+.ace_scrollbar-v {
+    overflow-y: auto;
+}

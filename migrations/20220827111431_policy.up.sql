@@ -1,6 +1,7 @@
 -- Add up migration script here
 CREATE TABLE `policy` (
     `id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'role_id',
+    `name` VARCHAR(255) NOT NULL COMMENT 'role name',
     `desc` VARCHAR(255) NOT NULL COMMENT 'role description',
     `version` VARCHAR(255) NOT NULL COMMENT 'version',
     `policy_type` TINYINT(3) UNSIGNED NOT NULL DEFAULT '1' COMMENT '1.custom 2.system',
@@ -14,7 +15,7 @@ CREATE TABLE `policy` (
     `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3) COMMENT 'update time',
     `deleted_at` DATETIME(3) NULL DEFAULT NULL COMMENT 'delete time',
     PRIMARY KEY (`id`),
-    UNIQUE `idx_policy_type_version_desc_deleted` (`policy_type`, `version`, `desc`, `deleted`) USING BTREE,
+    UNIQUE `idx_policy_type_version_name_deleted` (`policy_type`, `version`, `name`, `deleted`) USING BTREE,
     CONSTRAINT `subjects` CHECK (json_valid(`subjects`)),
     CONSTRAINT `action` CHECK (json_valid(`action`)),
     CONSTRAINT `resources` CHECK (json_valid(`resources`)),

@@ -1,7 +1,7 @@
 use chrono::Utc;
 use rand::Rng;
 use serde::Deserialize;
-use sqlx::MySqlPool;
+use sqlx::{MySql, MySqlPool, Transaction};
 use validator::Validate;
 
 use crate::{
@@ -19,9 +19,8 @@ pub struct Content {
     pub expire: Option<u64>,
 }
 
-pub async fn create(pool: MySqlPool, content: &Content) -> Result<ID> {
-    let mut tx = pool.begin().await.map_err(Error::any)?;
-    super::user::exist(&mut tx, &content.user_id).await?;
+pub async fn create(tx: &mut Transaction<'_, MySql>, content: &Content) -> Result<ID> {
+    super::user::exist(tx, &content.user_id).await?;
     let secret_id = next_id().map_err(Error::any)?;
     let ak = rand::thread_rng()
         .sample_iter(&rand::distributions::Alphanumeric)
@@ -48,7 +47,7 @@ pub async fn create(pool: MySqlPool, content: &Content) -> Result<ID> {
         sk,
         expire,
     )
-    .execute(&pool)
+    .execute(tx)
     .await
     .map_err(Error::any)?;
     Ok(ID {
@@ -56,7 +55,7 @@ pub async fn create(pool: MySqlPool, content: &Content) -> Result<ID> {
     })
 }
 
-pub async fn delete(pool: MySqlPool, id: &str, user_id: &str) -> Result<()> {
+pub async fn delete(pool: &MySqlPool, id: &str, user_id: &str) -> Result<()> {
     sqlx::query!(
         r#"UPDATE `secret` SET `deleted` = `id`,`deleted_at`= ? 
         WHERE `id` = ? AND `user_id` = ? AND `deleted` = 0;"#,
@@ -64,7 +63,7 @@ pub async fn delete(pool: MySqlPool, id: &str, user_id: &str) -> Result<()> {
         id,
         user_id,
     )
-    .execute(&pool)
+    .execute(pool)
     .await
     .map_err(Error::any)?;
     Ok(())
@@ -121,7 +120,7 @@ pub struct ListOpts {
     pub sort: String,
 }
 
-pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Secret>> {
+pub async fn list(pool: &MySqlPool, opts: &ListOpts) -> Result<List<Secret>> {
     match &opts.user_id {
         Some(user_id) => {
             let secret_result = sqlx::query!(
@@ -129,7 +128,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Secret>> {
                 WHERE `user_id` = ? AND `deleted` = 0;"#,
                 user_id,
             )
-            .fetch_one(&pool)
+            .fetch_one(pool)
             .await
             .map_err(Error::any)?;
             let users = sqlx::query!(
@@ -150,7 +149,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Secret>> {
                 created_at: row.created_at,
                 updated_at: row.updated_at,
             })
-            .fetch_all(&pool)
+            .fetch_all(pool)
             .await
             .map_err(Error::any)?;
             Ok(List {
@@ -165,7 +164,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Secret>> {
                 r#"SELECT COUNT(`id`) as count FROM `secret`
                 WHERE `deleted` = 0;"#,
             )
-            .fetch_one(&pool)
+            .fetch_one(pool)
             .await
             .map_err(Error::any)?;
             let users = sqlx::query!(
@@ -185,7 +184,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Secret>> {
                 created_at: row.created_at,
                 updated_at: row.updated_at,
             })
-            .fetch_all(&pool)
+            .fetch_all(pool)
             .await
             .map_err(Error::any)?;
             Ok(List {
@@ -196,4 +195,25 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Secret>> {
             })
         }
     }
+}
+
+pub async fn list_all_by_user_id(pool: &MySqlPool, user_id: &str) -> Result<Vec<Secret>> {
+    sqlx::query!(
+        r#"SELECT `id`,`name`,`user_id`,`access_key`,`expire`,`created_at`,`updated_at`
+        FROM `secret`
+        WHERE `user_id` = ? AND `deleted` = 0;"#,
+        user_id,
+    )
+    .map(|row| Secret {
+        id: row.id.to_string(),
+        name: row.name,
+        user_id: row.user_id.to_string(),
+        access_key: row.access_key,
+        expire: row.expire,
+        created_at: row.created_at,
+        updated_at: row.updated_at,
+    })
+    .fetch_all(pool)
+    .await
+    .map_err(Error::any)
 }
