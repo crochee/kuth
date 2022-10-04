@@ -1,10 +1,4 @@
 import {
-    UserOutlined,
-    EyeInvisibleOutlined,
-    EyeTwoTone,
-    LockOutlined,
-} from '@ant-design/icons';
-import {
     Button,
     Space,
     Drawer,
@@ -12,6 +6,8 @@ import {
     Input,
 } from 'antd';
 import Invoke from '../../../apis/kuth';
+import JsonEditor from '../../../components/jsoneditor';
+import { useState } from 'react';
 
 const CreatePolicyDrawer = (props) => {
     const {
@@ -19,6 +15,7 @@ const CreatePolicyDrawer = (props) => {
         setOpen,
         setLoading,
     } = props
+    const [jsonValue, setJsonValue] = useState(null);
     const [form] = Form.useForm();
 
     const onClick = (e) => {
@@ -36,8 +33,9 @@ const CreatePolicyDrawer = (props) => {
         form.submit();
         Invoke("/v1/policies", "POST", 201, {
             name: form.getFieldValue("name"),
-            password: form.getFieldValue("password"),
             desc: form.getFieldValue("desc"),
+            policy_type: 1,
+            ...jsonValue,
         }).then((result) => {
             setOpen(false);
             setLoading(true);
@@ -60,50 +58,42 @@ const CreatePolicyDrawer = (props) => {
         <Form form={form} layout="vertical">
             <Form.Item
                 name="name"
-                label="用户名"
+                label="策略名"
                 rules={[
                     {
                         required: true,
-                        message: 'Please enter user name',
+                        message: 'Please enter policy name',
                     },
                 ]}
             >
                 <Input
-                    placeholder="Please enter user name"
-                    prefix={<UserOutlined />}
+                    placeholder="Please enter policy name"
                     allowClear
                     maxLength={255}
-                />
-            </Form.Item>
-            <Form.Item
-                name="password"
-                label="密码"
-                rules={[
-                    {
-                        required: true,
-                        message: 'Please enter password',
-                    },
-                ]}
-            >
-                <Input.Password
-                    placeholder="Please enter password"
-                    allowClear
-                    maxLength={255}
-                    prefix={<LockOutlined />}
-                    iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
                 />
             </Form.Item>
             <Form.Item
                 name="desc"
                 label="描述"
+                rules={[
+                    {
+                        required: true,
+                        message: 'Please enter desc',
+                    },
+                ]}
             >
                 <Input
-                    placeholder="Please enter description"
+                    placeholder="Please enter desc"
                     allowClear
                     maxLength={255}
                 />
             </Form.Item>
         </Form>
+        <JsonEditor
+            value={jsonValue}
+            onChange={setJsonValue}
+            mode="code"
+        />
     </Drawer>
 }
 

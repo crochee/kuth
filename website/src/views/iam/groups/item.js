@@ -22,17 +22,22 @@ const Group = () => {
         created_at: "",
         updated_at: "",
     });
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     let params = useParams();
     useEffect(() => {
         if (loading) {
             setLoading(true);
             Invoke("/v1/groups/" + params.id).then((resp) => {
-                setData(resp)
-            })
-            setLoading(false);
+                setData(resp);
+                setLoading(false);
+            }).catch((err) => {
+                setLoading(false);
+            });
         }
-    }, [loading, params.id])
+    }, [loading, params.id]);
+    useEffect(() => {
+        setLoading(true);
+    }, []);
     const onSave = (key, value) => {
         Invoke("/v1/groups/" + params.id, 'PATCH', 204, { [key]: value }).then(() => {
             setLoading(true);

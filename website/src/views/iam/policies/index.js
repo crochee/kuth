@@ -20,7 +20,7 @@ import CreatePolicyDrawer from "./create";
 
 const Policies = () => {
     const [records, setRecords] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     // 数据拉取
@@ -30,23 +30,24 @@ const Policies = () => {
     const sort = searchParams.get('sort') || 'created_at desc';
     useEffect(() => {
         if (loading) {
-            const fetchRecords = () => {
-                setLoading(true);
-                Invoke("/v1/policies?limit=" + limit + "&offset=" + offset + "&sort=" + sort).then((resp) => {
-                    setRecords(resp.data || []);
-                    setSearchParams({
-                        limit: resp.limit,
-                        offset: resp.offset,
-                        sort: sort,
-                    });
-                    setSelectedRowKeys([]);
+            Invoke("/v1/policies?limit=" + limit + "&offset=" + offset + "&sort=" + sort).then((resp) => {
+                setRecords(resp.data || []);
+                setSearchParams({
+                    limit: resp.limit,
+                    offset: resp.offset,
+                    sort: sort,
                 });
+                setSelectedRowKeys([]);
                 setLoading(false);
-            };
-            fetchRecords();
+            }).catch(() => {
+                setLoading(false);
+            });
         }
     }, [loading, limit, offset, sort, setSearchParams]);
 
+    useEffect(() => {
+        setLoading(true);
+    }, []);
     const columns = [
         {
             title: '策略ID',

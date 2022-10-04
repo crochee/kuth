@@ -1,7 +1,7 @@
 import { useDispatch } from 'react-redux';
-import { UserClear } from '../../../store';
+import { UserClear } from '../../store';
 import { useNavigate } from "react-router-dom";
-import {removeToken} from '../../../utils/auth';
+import {removeToken} from '../../utils/auth';
 
 const Logout = () => {
     const dispatch = useDispatch();

@@ -21,7 +21,7 @@ import CreateSecretDrawer from "./create";
 
 const Secrets = () => {
     const [records, setRecords] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     // 数据拉取
@@ -31,7 +31,6 @@ const Secrets = () => {
     const sort = searchParams.get('sort') || 'created_at desc';
     useEffect(() => {
         if (loading) {
-            setLoading(true);
             Invoke("/v1/secrets?limit=" + limit + "&offset=" + offset + "&sort=" + sort).then((resp) => {
                 setRecords(resp.data || []);
                 setSearchParams({
@@ -45,6 +44,9 @@ const Secrets = () => {
         }
     }, [loading, limit, offset, sort, setSearchParams]);
 
+    useEffect(() => {
+        setLoading(true);
+    }, [])
     const columns = [
         {
             title: '密钥ID',

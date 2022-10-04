@@ -1,10 +1,12 @@
 import { FrownOutlined } from '@ant-design/icons';
+import { Layout } from 'antd';
 
 const NotFound = () => {
-    return <div>
+    return <Layout>
         <FrownOutlined />
-        <h1>404 Not Found</h1>
-    </div>
+        <Layout>404 Not Found</Layout>
+        <Layout>Sorry, the page could not be found.</Layout>
+    </Layout>
 }
 
 export default NotFound;

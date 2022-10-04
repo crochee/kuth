@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Layout, Menu } from 'antd';
 import {
     LaptopOutlined, NotificationOutlined, UserOutlined, MenuFoldOutlined,
@@ -121,8 +121,10 @@ const CheckAuth = () => {
     const dispatch = useDispatch();
     let location = useLocation();
     const navigate = useNavigate();
-    useEffect(() => {
-        if (!getToken()) {
+    const token = getToken();
+
+    const checkToken = useCallback(() => {
+        if (!token) {
             navigate("/login", { state: { from: location }, replace: true });
             return
         }
@@ -136,7 +138,11 @@ const CheckAuth = () => {
         }).catch((content) => {
             dispatch(UserClear());
             navigate("/login", { state: { from: location }, replace: true });
-        })
-    })
+        });
+    }, [token, dispatch, location, navigate, userStore.id]);
+
+    useEffect(() => {
+        checkToken();
+    }, [checkToken]);
     return (<></>)
 }

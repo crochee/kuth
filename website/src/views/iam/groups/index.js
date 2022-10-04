@@ -16,7 +16,7 @@ import CreateGroupDrawer from "./create";
 
 const Groups = () => {
     const [records, setRecords] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
     // 数据拉取
@@ -26,28 +26,29 @@ const Groups = () => {
     const sort = searchParams.get('sort') || 'created_at desc';
     useEffect(() => {
         if (loading) {
-            const fetchRecords = () => {
-                setLoading(true);
-                Invoke("/v1/groups?limit=" + limit + "&offset=" + offset + "&sort=" + sort).then((resp) => {
-                    setRecords((resp.data || []).map((value) => {
-                        return {
-                            ...value,
-                            admin: value.admin === 2 ? "企业管理人员" : "普通角色",
-                        }
-                    }));
-                    setSearchParams({
-                        limit: resp.limit,
-                        offset: resp.offset,
-                        sort: sort,
-                    });
-                    setSelectedRowKeys([]);
+            Invoke("/v1/groups?limit=" + limit + "&offset=" + offset + "&sort=" + sort).then((resp) => {
+                setRecords((resp.data || []).map((value) => {
+                    return {
+                        ...value,
+                        admin: value.admin === 2 ? "企业管理人员" : "普通角色",
+                    }
+                }));
+                setSearchParams({
+                    limit: resp.limit,
+                    offset: resp.offset,
+                    sort: sort,
                 });
+                setSelectedRowKeys([]);
                 setLoading(false);
-            };
-            fetchRecords();
+            }).catch((err) => {
+                setLoading(false);
+            });
         }
     }, [loading, limit, offset, sort, setSearchParams]);
 
+    useEffect(() => {
+        setLoading(true);
+    }, [])
     const columns = [
         {
             title: '用户组ID',

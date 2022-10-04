@@ -36,14 +36,12 @@ const Policy = () => {
         created_at: "",
         updated_at: "",
     });
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [mode, setMode] = useState("view");
-    const [finish, setFinish] = useState(false);
     const [jsonValue, setJsonValue] = useState(null);
     let params = useParams();
     useEffect(() => {
         if (loading) {
-            setLoading(true);
             Invoke("/v1/policies/" + params.id).then((resp) => {
                 const tempData = {
                     version: resp.version,
@@ -63,29 +61,25 @@ const Policy = () => {
                     updated_at: resp.updated_at,
                 });
                 setJsonValue(tempData);
-            })
-            setLoading(false);
+                setLoading(false);
+            }).catch(() => {
+                setLoading(false);
+            });
         }
-    }, [loading, params.id])
+    }, [loading, params.id]);
+    useEffect(() => {
+        setLoading(true);
+    }, []);
     const onSave = (key, value) => {
         Invoke("/v1/policies/" + params.id, 'PATCH', 204, { [key]: value }).then(() => {
             setLoading(true);
         })
     };
-    const onMultSave = (value) => {
-        if (!finish) {
-            setJsonValue(value);
-        }
-    };
-    useEffect(() => {
-        if (finish) {
-            console.log(jsonValue);
-            Invoke("/v1/policies/" + params.id, 'PATCH', 204, jsonValue).then(() => {
-                setLoading(true);
-            })
-            setFinish(false);
-        }
-    }, [finish, jsonValue, params.id])
+    const multipleSave = () => {
+        Invoke("/v1/policies/" + params.id, 'PATCH', 204, jsonValue).then(() => {
+            setLoading(true);
+        })
+    }
 
     const jsonMenu = (
         <Menu
@@ -136,7 +130,7 @@ const Policy = () => {
                     overlay={jsonMenu}
                     onClick={(e) => {
                         e.preventDefault();
-                        setFinish(true);
+                        multipleSave();
                     }}
                 >
                     确认
@@ -190,7 +184,7 @@ const Policy = () => {
             </Descriptions>
             <JsonEditor
                 value={data.data}
-                onChange={onMultSave}
+                onChange={setJsonValue}
                 mode={mode}
             />
         </Layout.Content>

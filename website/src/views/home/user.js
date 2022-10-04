@@ -1,6 +1,6 @@
 import { Avatar, Image, Dropdown, Space, Menu, Typography } from 'antd';
 import { Link } from "react-router-dom";
-import Logout from "./logout";
+import Logout from "../logout";
 
 const menu = (
     <Menu
