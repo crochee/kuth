@@ -20,7 +20,9 @@ where
 {
     type Rejection = Error;
     async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
-        let value = Query::<T>::from_request(req).await.map_err(Error::any)?;
+        let value = Query::<T>::from_request(req)
+            .await
+            .map_err(|err| Error::BadRequest(err.to_string()))?;
         value.deref().validate().map_err(Error::Validates)?;
         Ok(Self(value))
     }
@@ -36,7 +38,9 @@ where
 {
     type Rejection = Error;
     async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
-        let value = Json::<T>::from_request(req).await.map_err(Error::any)?;
+        let value = Json::<T>::from_request(req)
+            .await
+            .map_err(|err| Error::BadRequest(err.to_string()))?;
         value.deref().validate().map_err(Error::Validates)?;
         Ok(Self(value))
     }

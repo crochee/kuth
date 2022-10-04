@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, message } from 'antd';
 import {
     LaptopOutlined, NotificationOutlined, UserOutlined, MenuFoldOutlined,
     MenuUnfoldOutlined,
@@ -125,6 +125,7 @@ const CheckAuth = () => {
 
     const checkToken = useCallback(() => {
         if (!token) {
+            message.error(`账户没有登陆`, 5);
             navigate("/login", { state: { from: location }, replace: true });
             return
         }
