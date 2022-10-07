@@ -143,7 +143,9 @@ const Users = () => {
                 </>
             }
             extra={[
-                <Button key="2"
+                <Button
+                    key="2"
+                    type="primary"
                     disabled={(selectedRowKeys.length === 0)}
                     icon={<MinusOutlined />}
                     onClick={() => {
@@ -155,7 +157,8 @@ const Users = () => {
                         }, 200);
                     }}
                 >删除用户</Button>,
-                <Button key="1"
+                <Button
+                    key="1"
                     type="primary"
                     icon={<PlusOutlined />}
                     onClick={() => { setOpen(true) }}

@@ -6,13 +6,16 @@ import {
     Space,
     Popover,
 } from "antd";
-import { DownOutlined, PlusOutlined, MinusOutlined, QuestionCircleOutlined } from '@ant-design/icons';
+import {
+    PlusOutlined,
+    MinusOutlined,
+    QuestionCircleOutlined,
+} from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from "react-router-dom";
 import Invoke from "../../../apis/kuth";
 import Group from "./item";
 import CreateGroupDrawer from "./create";
-
 
 const Groups = () => {
     const [records, setRecords] = useState([]);
@@ -89,19 +92,21 @@ const Groups = () => {
             render: (row) => {
                 return <Space size="large">
                     <Button
+                        key='1'
                         type="primary"
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.preventDefault();
                             Invoke("/v1/groups/" + row.id, 'DELETE', 204).then(() => {
                                 setLoading(true);
                             });
                         }}
                         disabled={row.name === "Administrator"}
                     >Delete</Button>
-                    <Button type="primary">
-                        <Space>
-                            More actions
-                            <DownOutlined />
-                        </Space>
+                    <Button
+                        key='3'
+                        type="primary"
+                    >
+                        <Link to={`/iam/groups/managers?group=${row.id}`}>用户授权管理</Link>
                     </Button>
                 </Space>
             },
@@ -139,7 +144,9 @@ const Groups = () => {
                 </>
             }
             extra={[
-                <Button key="2"
+                <Button
+                    key="2"
+                    type="primary"
                     disabled={(selectedRowKeys.length === 0)}
                     icon={<MinusOutlined />}
                     onClick={() => {
@@ -151,7 +158,8 @@ const Groups = () => {
                         }, 200);
                     }}
                 >删除用户组</Button>,
-                <Button key="1"
+                <Button
+                    key="1"
                     type="primary"
                     icon={<PlusOutlined />}
                     onClick={() => { setOpen(true) }}

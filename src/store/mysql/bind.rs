@@ -124,7 +124,7 @@ pub async fn list(pool: MySqlPool, opts: &ListOpts) -> Result<List<Bind>> {
     wheres.push_str(r#"`deleted` = 0"#);
     let bind_result = sqlx::query(
         format!(
-            r#"SELECT COUNT(*) as count FROM `group`
+            r#"SELECT COUNT(*) as count FROM `bind`
             WHERE {};"#,
             wheres,
         )

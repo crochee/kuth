@@ -7,6 +7,7 @@ import Users, { User } from "../views/iam/users";
 import Groups, { Group } from "../views/iam/groups";
 import Secrets, { Secret } from "../views/iam/secrets";
 import Policies, { Policy } from "../views/iam/policies";
+import Managers from "../views/iam/manager";
 
 const Router = () => {
     return <BrowserRouter>
@@ -27,6 +28,7 @@ const Router = () => {
                     <Route path="secrets/:id" element={<Secret />} />
                     <Route path="policies" element={<Policies />} />
                     <Route path="policies/:id" element={<Policy />} />
+                    <Route path="groups/managers" element={<Managers />} />
                 </Route>
                 <Route path="about" element={<div>about</div>} />
             </Route>

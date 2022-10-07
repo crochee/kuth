@@ -144,7 +144,9 @@ const Policies = () => {
                 </>
             }
             extra={[
-                <Button key="2"
+                <Button
+                    key="2"
+                    type="primary"
                     disabled={(selectedRowKeys.length === 0)}
                     icon={<MinusOutlined />}
                     onClick={() => {
@@ -156,7 +158,8 @@ const Policies = () => {
                         }, 200);
                     }}
                 >删除策略</Button>,
-                <Button key="1"
+                <Button
+                    key="1"
                     type="primary"
                     icon={<PlusOutlined />}
                     onClick={() => { setOpen(true) }}

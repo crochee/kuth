@@ -10,22 +10,25 @@ const Invoke = (url, method = 'GET', code = 200, data = null) => {
                 resolve();
                 return
             }
-            let contentType = response.headers.get("Content-Type");
+            let isJson = response.headers.get("Content-Type").startsWith("application/json");
             if (response.status !== code) {
-                if (contentType.startsWith("application/json")) {
+                if (response.status === 403) {
+                    removeToken();
+                }
+                if (isJson) {
                     reject(response.json());
                     return
                 }
                 reject({ message: response.status });
                 return
             }
-            if (contentType.startsWith("application/json")) {
+            if (isJson) {
                 resolve(response.json())
                 return
             }
-            throw new Error("Content-Type not supported" + contentType)
+            throw new Error("Content-Type not supported")
         }).catch((error) => {
-            message.error(error)
+            message.error(error, 5)
         })
     })
     return new Promise((resolve, reject) => {
@@ -66,16 +69,7 @@ export const Request = (url, method = 'GET', code = 200, data = null) => {
         options.body = JSON.stringify(options.body);
     }
     return new Promise((resolve, reject) => {
-        fetch(KuthUrl + url, options).then((response) => {
-            if (response.status === 403) {
-                response.json().then((resp) => {
-                    removeToken();
-                    message.error(resp.message, 5);
-                })
-                return
-            }
-            resolve(response)
-        }).catch(reject)
+        fetch(KuthUrl + url, options).then(resolve).catch(reject)
     })
 }
 
