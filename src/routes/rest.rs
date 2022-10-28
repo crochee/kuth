@@ -128,9 +128,9 @@ fn policy_api() -> Router {
 // 用户组绑定和解绑用户
 fn bind_api() -> Router {
     Router::new()
-        .route("/binds", post(bind::create))
-        .route("/binds/:id", delete(bind::delete))
-        .route("/binds", get(bind::list))
+        .route("/bindings", post(bind::create))
+        .route("/bindings/:id", delete(bind::delete))
+        .route("/bindings", get(bind::list))
 }
 
 // 认证

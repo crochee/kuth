@@ -16,13 +16,14 @@ import {
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from "react-router-dom";
 import Invoke from "../../../apis/kuth";
-import CreateManagerDrawer from './create';
+import CreateBindingDrawer from './create';
 
-const ManagerUsers = (props) => {
+const TagDesc = (props) => {
     const {
         selectedRowKeys,
         setSelectedRowKeys,
         rowSelection,
+        selectedTab,
     } = props;
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -35,7 +36,7 @@ const ManagerUsers = (props) => {
     const id = searchParams.get('group');
     useEffect(() => {
         if (loading) {
-            Invoke("/v1/binds?group_id=" + id + "&limit=" +
+            Invoke("/v1/bindings?bind_type=" + selectedTab + "&group_id=" + id + "&limit=" +
                 limit + "&offset=" + offset + "&sort=" + sort).then((resp) => {
                     setRecords((resp.data || []));
                     setLoading(false);
@@ -43,7 +44,7 @@ const ManagerUsers = (props) => {
                     setLoading(false);
                 });
         }
-    }, [loading, id, limit, offset, sort, setSearchParams]);
+    }, [loading, selectedTab, id, limit, offset, sort, setSearchParams]);
 
     useEffect(() => {
         setLoading(true);
@@ -58,33 +59,14 @@ const ManagerUsers = (props) => {
             dataIndex: 'group_id',
         },
         {
-            title: '类型',
-            dataIndex: 'bind_type',
-            render: (text) => {
-                if (text === 1) {
-                    return '角色'
-                }
-                if (text === 2) {
-                    return '策略'
-                }
-                return text
-            },
-        },
-        {
-            title: '目标ID',
+            title: selectedTab == '1' ? '用户ID' : '策略ID',
             dataIndex: 'object_id',
-            render: (text, record) => {
-                if (record.bind_type === 1) {
-                    return <Space size="large">
-                        <Link to={`/iam/users/${text}`}>{text}</Link>
-                    </Space>
-                }
-                if (record.bind_type === 2) {
-                    return <Space size="large">
-                        <Link to={`/iam/policies/${text}`}>{text}</Link>
-                    </Space>
-                }
-                return text
+            render: (text) => {
+                return selectedTab == '1' ? <Space size="large">
+                    <Link to={`/iam/users/${text}`}>{text}</Link>
+                </Space> : <Space size="large">
+                    <Link to={`/iam/policies/${text}`}>{text}</Link>
+                </Space>
             },
         },
         {
@@ -113,9 +95,9 @@ const ManagerUsers = (props) => {
                         type="primary"
                         onClick={(e) => {
                             e.preventDefault();
-                            // Invoke("/v1/binds/" + row.id, 'DELETE', 204).then(() => {
-                            //     setLoading(true);
-                            // });
+                            Invoke("/v1/bindings/" + row.id, 'DELETE', 204).then(() => {
+                                setLoading(true);
+                            });
                         }}
                         disabled={row.name === "Administrator"}
                     >解绑</Button>
@@ -144,4 +126,4 @@ const ManagerUsers = (props) => {
 }
 
 
-export default ManagerUsers;
+export default TagDesc;

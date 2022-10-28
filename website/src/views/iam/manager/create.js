@@ -2,20 +2,13 @@ import {
     Button,
     Space,
     Drawer,
-    Form,
-    Input,
-    Layout,
-    PageHeader,
     Table,
-    Popover,
-    Breadcrumb,
-    Tabs,
 } from 'antd';
 import Invoke from '../../../apis/kuth';
 import { useSearchParams, Link } from "react-router-dom";
 import { useState, useEffect } from 'react';
 
-const CreateManagerDrawer = (props) => {
+const CreateBindingDrawer = (props) => {
     const {
         open,
         setOpen,
@@ -25,6 +18,7 @@ const CreateManagerDrawer = (props) => {
     const [records, setRecords] = useState([]);
     const [createLoading, setCreateLoading] = useState(false);
     const [selectedRowKeys, setSelectedRowKeys] = useState([]);
+
 
     const rowSelection = {
         selectedRowKeys,
@@ -40,31 +34,53 @@ const CreateManagerDrawer = (props) => {
     const limit = searchParams.get('limit') || 20;
     const offset = searchParams.get('offset') || 0;
     const sort = searchParams.get('sort') || 'created_at desc';
-    const id = searchParams.get('group');
+    const groupID = searchParams.get('group');
 
-    const [form] = Form.useForm();
+    useEffect(() => {
+        if (createLoading) {
+            const users = () => {
+                Invoke("/v1/users?&limit=" +
+                    limit + "&offset=" + offset + "&sort=" + sort).then((resp) => {
+                        setRecords((resp.data || []));
+                        setCreateLoading(false);
+                    }).catch((err) => {
+                        setCreateLoading(false);
+                    });
+            };
+            const policies = () => {
+                Invoke("/v1/policies?&limit=" +
+                    limit + "&offset=" + offset + "&sort=" + sort).then((resp) => {
+                        setRecords((resp.data || []));
+                        setCreateLoading(false);
+                    }).catch((err) => {
+                        setCreateLoading(false);
+                    });
+            };
+            console.log(selectedTab);
+            const f = selectedTab === '1' ? users : policies;
+            f();
+        }
+    }, [createLoading, selectedTab, limit, offset, sort, setSearchParams]);
+
+    useEffect(() => {
+        setCreateLoading(true);
+    }, [])
+
     const onClick = (e) => {
         e.preventDefault()
-        let hasError = false;
-        form.getFieldsError().map((field) => {
-            if (field.errors.length !== 0) {
-                hasError = true
-            }
-            return field
-        })
-        if (hasError) {
-            return
-        }
-        form.submit();
-        Invoke("/v1/binds", "POST", 201, {
-            group_id: id,
-            bind_type: selectedTab,
-            desc: form.getFieldValue("desc"),
-        }).then((result) => {
+        selectedRowKeys.forEach((id) => {
+            Invoke("/v1/bindings", "POST", 201, {
+                group_id: groupID,
+                bind_type: Number(selectedTab),
+                object_id: id,
+            }).then(() => {
+            }).catch(() => {
+            });
+        });
+        setTimeout(() => {
             setOpen(false);
             setLoading(true);
-            form.resetFields();
-        })
+        }, 200);
     };
     const onChange = (pagination, filters, sorter) => {
         // TODO: handle
@@ -72,7 +88,7 @@ const CreateManagerDrawer = (props) => {
     }
     const columns = [
         {
-            title: '用户名',
+            title: '名称',
             dataIndex: 'name',
             render: (text, row) => {
                 return <Space size="large">
@@ -82,7 +98,7 @@ const CreateManagerDrawer = (props) => {
         },
     ]
     return <Drawer
-        title="创建用户组"
+        title="创建绑定"
         placement="right"
         size="large"
         onClose={() => { setOpen(false) }}
@@ -97,7 +113,7 @@ const CreateManagerDrawer = (props) => {
         <Table
             loading={createLoading}
             size="large"
-            showHeader={false}
+            showHeader={true}
             rowSelection={rowSelection}
             pagination={{
                 position: ["bottomCenter"],
@@ -107,35 +123,7 @@ const CreateManagerDrawer = (props) => {
             dataSource={records}
             onChange={onChange}
         />
-        <Form form={form} layout="vertical">
-            <Form.Item
-                name="name"
-                label="用户组名"
-                rules={[
-                    {
-                        required: true,
-                        message: 'Please enter group name',
-                    },
-                ]}
-            >
-                <Input
-                    placeholder="Please enter group name"
-                    allowClear
-                    maxLength={255}
-                />
-            </Form.Item>
-            <Form.Item
-                name="desc"
-                label="描述"
-            >
-                <Input
-                    placeholder="Please enter description"
-                    allowClear
-                    maxLength={255}
-                />
-            </Form.Item>
-        </Form>
     </Drawer>
 }
 
-export default CreateManagerDrawer;
+export default CreateBindingDrawer;

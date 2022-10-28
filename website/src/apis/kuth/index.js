@@ -36,7 +36,7 @@ const Invoke = (url, method = 'GET', code = 200, data = null) => {
             (result) => {
                 result.then((content) => {
                     message.warn(content.message, 5)
-                    reject(content);
+                    reject();
                 })
             }
         )

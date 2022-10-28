@@ -1,9 +1,7 @@
 import {
     Layout,
     PageHeader,
-    Table,
     Button,
-    Space,
     Popover,
     Breadcrumb,
     Tabs,
@@ -16,9 +14,8 @@ import {
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from "react-router-dom";
 import Invoke from "../../../apis/kuth";
-import CreateManagerDrawer from './create';
-import ManagerUsers from './user';
-
+import CreateBindingDrawer from './create';
+import TagDesc from './tag';
 
 const Managers = () => {
     const [records, setRecords] = useState([]);
@@ -33,11 +30,10 @@ const Managers = () => {
             setSelectedRowKeys(selectedRowKeys);
         },
         getCheckboxProps: (record) => ({
-            disabled: record.id === "145755342888836871",
+            disabled: record.group_id === "145755342888836871",
             id: record.id,
         }),
     };
-
     return <Layout style={{ padding: '0 12px' }}>
         <PageHeader
             title={
@@ -61,7 +57,7 @@ const Managers = () => {
                     icon={<MinusOutlined />}
                     onClick={() => {
                         selectedRowKeys.forEach((id) => {
-                            Invoke("/v1/binds/" + id, 'DELETE', 204).then(() => { });
+                            Invoke("/v1/bindings/" + id, 'DELETE', 204).then(() => { });
                         });
                         setTimeout(() => {
                             setLoading(true);
@@ -89,7 +85,6 @@ const Managers = () => {
                 tabPosition="left"
                 type="card"
                 onChange={(key) => {
-                    console.log(key);
                     setSelectedTab(key);
                     setSelectedRowKeys([]);
                 }}
@@ -97,20 +92,26 @@ const Managers = () => {
                     {
                         label: `用户`,
                         key: "1",
-                        children: (<ManagerUsers
+                        children: (<TagDesc
                             selectedRowKeys={selectedRowKeys}
                             rowSelection={rowSelection}
                             setSelectedRowKeys={setSelectedRowKeys}
+                            selectedTab={selectedTab}
                         />),
                     },
                     {
                         label: `策略`,
                         key: "2",
-                        children: `Content of Tab Pane 2`,
+                        children: (<TagDesc
+                            selectedRowKeys={selectedRowKeys}
+                            rowSelection={rowSelection}
+                            setSelectedRowKeys={setSelectedRowKeys}
+                            selectedTab={selectedTab}
+                        />),
                     },
                 ]}
             />
-            <CreateManagerDrawer
+            <CreateBindingDrawer
                 open={open}
                 setOpen={setOpen}
                 setLoading={setLoading}
