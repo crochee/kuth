@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use chrono::Utc;
 use serde::Deserialize;
 use sqlx::{MySql, MySqlPool, Transaction};
@@ -11,6 +13,26 @@ use crate::{
     utils::id::next_id,
     Error, Result,
 };
+
+pub struct PolicyContent {
+    // 指定要使用的策略语言版本。作为最佳实践，请使用最新 2012-10-17版本。
+    pub version: String,
+    pub statement: Statement,
+}
+
+pub struct Statement {
+    pub sid: Option<String>,
+    pub effect: Effect,
+    pub principal: Option<HashMap<String, Vec<String>>>,
+    pub action: Vec<String>,
+    pub resource: Vec<String>,
+    pub condition: Option<HashMap<String, HashMap<String, Vec<String>>>>,
+}
+
+pub enum Effect {
+    Allow,
+    Deny,
+}
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct Content {

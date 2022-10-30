@@ -6,7 +6,7 @@ use axum::Server;
 use tokio::runtime::Builder;
 use tracing_subscriber::FmtSubscriber;
 
-use kuth::{api_rest_router, get_conn_pool, Error, Result};
+use kuth::{api_rest_router, init, Error, Result};
 
 #[global_allocator]
 static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
@@ -26,7 +26,7 @@ fn main() -> Result<()> {
     let arc_runtime = Arc::new(raw_runtime);
     // 异步阻塞http服务
     arc_runtime.block_on(async {
-        let pool = get_conn_pool().await?;
+        init().await?;
         let rest = api_rest_router(pool);
 
         Server::bind(&SocketAddr::from(([0, 0, 0, 0], 30050)))
